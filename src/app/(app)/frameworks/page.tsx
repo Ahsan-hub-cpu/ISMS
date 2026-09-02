@@ -1,0 +1,64 @@
+import { ArrowRight, Library } from "lucide-react";
+import type { Metadata } from "next";
+import Link from "next/link";
+
+import { Badge } from "@/components/ui/badge";
+import { Card, CardBody } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
+import { requirePermission } from "@/modules/auth/presentation/guards";
+import { frameworkService } from "@/modules/framework";
+
+export const metadata: Metadata = { title: "Frameworks" };
+
+export default async function FrameworksPage() {
+  await requirePermission("frameworks:read");
+
+  const result = await frameworkService.listFrameworks();
+  const frameworks = result.ok ? result.value : [];
+
+  return (
+    <>
+      <PageHeader
+        title="Frameworks"
+        description="Recognised standards the organisation is assessed against. Every assessment, gap and piece of evidence is linked back to a control in one of these catalogues."
+      />
+
+      {frameworks.length === 0 ? (
+        <Card>
+          <CardBody className="text-sm text-content-muted">
+            No framework has been loaded. Run <code className="font-mono">npm run db:seed</code> to
+            import the ISO/IEC 27001:2022 catalogue.
+          </CardBody>
+        </Card>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2">
+          {frameworks.map((framework) => (
+            <Link
+              key={framework.id}
+              href={`/frameworks/${framework.code}`}
+              className="group surface-card flex flex-col gap-4 p-5 transition-shadow hover:shadow-[var(--shadow-raised)]"
+            >
+              <div className="flex items-start gap-3">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-200">
+                  <Library className="size-5" aria-hidden />
+                </span>
+                <div className="min-w-0 space-y-1">
+                  <h2 className="font-semibold tracking-tight">{framework.name}</h2>
+                  <p className="text-xs text-content-muted">{framework.publisher}</p>
+                </div>
+                {framework.isActive ? <Badge tone="success">Active</Badge> : null}
+              </div>
+
+              <p className="text-sm text-content-muted">{framework.description}</p>
+
+              <span className="mt-auto inline-flex items-center gap-1.5 text-sm font-medium text-brand-700 dark:text-brand-300">
+                Browse controls
+                <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}

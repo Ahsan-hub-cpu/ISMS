@@ -1,0 +1,874 @@
+{
+  "code": "ISO27001-2022",
+  "name": "ISO/IEC 27001:2022",
+  "version": "2022",
+  "publisher": "International Organization for Standardization",
+  "description": "Annex A of ISO/IEC 27001:2022 lists 93 information security controls grouped into four themes. The wording below is a paraphrased summary written for this project; the authoritative text remains the published standard.",
+  "themes": [
+    {
+      "code": "A.5",
+      "name": "Organizational controls",
+      "description": "Governance, policy, supplier, incident and compliance controls that direct how the organisation manages information security.",
+      "controls": [
+        {
+          "code": "A.5.1",
+          "title": "Policies for information security",
+          "purpose": "Give management direction and support for information security.",
+          "description": "An information security policy and supporting topic-specific policies are defined, approved by management, published and acknowledged by relevant staff, and reviewed at planned intervals or after significant change.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Identify"]
+        },
+        {
+          "code": "A.5.2",
+          "title": "Information security roles and responsibilities",
+          "purpose": "Establish a clear structure of accountability for security work.",
+          "description": "Security roles and responsibilities are defined and allocated according to the organisation's needs, so that every activity has a named owner.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Identify"]
+        },
+        {
+          "code": "A.5.3",
+          "title": "Segregation of duties",
+          "purpose": "Reduce the risk of fraud, error and unauthorised change.",
+          "description": "Conflicting duties and areas of responsibility are separated so that no single person can complete a sensitive process without oversight.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.5.4",
+          "title": "Management responsibilities",
+          "purpose": "Ensure security is applied consistently across the organisation.",
+          "description": "Management requires all personnel to apply information security in line with the established policies, topic-specific policies and procedures.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Identify"]
+        },
+        {
+          "code": "A.5.5",
+          "title": "Contact with authorities",
+          "purpose": "Maintain a route to regulators and emergency services.",
+          "description": "Appropriate contacts with relevant authorities are established and maintained so incidents and legal obligations can be handled promptly.",
+          "controlTypes": ["Preventive", "Corrective"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Identify", "Respond", "Recover"]
+        },
+        {
+          "code": "A.5.6",
+          "title": "Contact with special interest groups",
+          "purpose": "Stay informed about emerging threats and good practice.",
+          "description": "Contact is maintained with special interest groups, security forums and professional associations relevant to the organisation.",
+          "controlTypes": ["Preventive", "Corrective"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect", "Respond", "Recover"]
+        },
+        {
+          "code": "A.5.7",
+          "title": "Threat intelligence",
+          "purpose": "Understand the threats the organisation actually faces.",
+          "description": "Information about information security threats is collected and analysed to produce intelligence that informs protective and detective measures.",
+          "controlTypes": ["Preventive", "Detective", "Corrective"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Identify", "Detect", "Respond"]
+        },
+        {
+          "code": "A.5.8",
+          "title": "Information security in project management",
+          "purpose": "Build security into new work rather than adding it later.",
+          "description": "Information security requirements are identified and addressed within project management, regardless of the type of project.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Identify", "Protect"]
+        },
+        {
+          "code": "A.5.9",
+          "title": "Inventory of information and other associated assets",
+          "purpose": "Know what has to be protected and who owns it.",
+          "description": "An inventory of information and other associated assets, including owners, is developed and kept up to date.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Identify"]
+        },
+        {
+          "code": "A.5.10",
+          "title": "Acceptable use of information and other associated assets",
+          "purpose": "Set expectations for how staff may use organisational assets.",
+          "description": "Rules for the acceptable use and handling of information and associated assets are identified, documented and implemented.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.5.11",
+          "title": "Return of assets",
+          "purpose": "Recover organisational property when access ends.",
+          "description": "Personnel and other interested parties return all organisational assets in their possession when their employment, contract or agreement ends.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.5.12",
+          "title": "Classification of information",
+          "purpose": "Apply protection proportionate to sensitivity.",
+          "description": "Information is classified according to confidentiality, integrity, availability and relevant interested-party requirements.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Identify"]
+        },
+        {
+          "code": "A.5.13",
+          "title": "Labelling of information",
+          "purpose": "Make the classification of information visible to handlers.",
+          "description": "Procedures for labelling information are developed and implemented in line with the adopted classification scheme.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.5.14",
+          "title": "Information transfer",
+          "purpose": "Protect information while it moves between parties.",
+          "description": "Transfer rules, procedures and agreements are in place for all types of transfer facilities within the organisation and with external parties.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.5.15",
+          "title": "Access control",
+          "purpose": "Limit access to information to those who need it.",
+          "description": "Rules controlling physical and logical access to information and associated assets are established and implemented based on business and security requirements.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.5.16",
+          "title": "Identity management",
+          "purpose": "Maintain trustworthy identities for people and services.",
+          "description": "The full life cycle of identities is managed, from creation through change to removal.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.5.17",
+          "title": "Authentication information",
+          "purpose": "Protect the secrets that prove identity.",
+          "description": "Allocation and management of authentication information is controlled by a management process that includes advising personnel on appropriate handling.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.5.18",
+          "title": "Access rights",
+          "purpose": "Keep granted access aligned with current duties.",
+          "description": "Access rights to information and associated assets are provisioned, reviewed, modified and removed in accordance with the access control policy.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.5.19",
+          "title": "Information security in supplier relationships",
+          "purpose": "Manage the risk introduced by third parties.",
+          "description": "Processes and procedures are defined and implemented to manage the information security risks associated with the use of supplier products or services.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Identify", "Protect"]
+        },
+        {
+          "code": "A.5.20",
+          "title": "Addressing information security within supplier agreements",
+          "purpose": "Make security obligations contractual.",
+          "description": "Relevant information security requirements are established and agreed with each supplier based on the type of relationship.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Identify", "Protect"]
+        },
+        {
+          "code": "A.5.21",
+          "title": "Managing information security in the ICT supply chain",
+          "purpose": "Address risk that arrives through products and components.",
+          "description": "Processes and procedures are defined and implemented to manage the information security risks associated with the ICT products and services supply chain.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Identify", "Protect"]
+        },
+        {
+          "code": "A.5.22",
+          "title": "Monitoring, review and change management of supplier services",
+          "purpose": "Keep assurance current over the life of a contract.",
+          "description": "The organisation regularly monitors, reviews, evaluates and manages change to supplier information security practice and service delivery.",
+          "controlTypes": ["Preventive", "Detective"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Identify", "Protect", "Detect"]
+        },
+        {
+          "code": "A.5.23",
+          "title": "Information security for use of cloud services",
+          "purpose": "Govern cloud adoption and exit.",
+          "description": "Processes for acquisition, use, management and exit from cloud services are established in accordance with the organisation's security requirements.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.5.24",
+          "title": "Information security incident management planning and preparation",
+          "purpose": "Be ready before an incident happens.",
+          "description": "Incident management processes, roles and responsibilities are planned and prepared in advance and communicated to those involved.",
+          "controlTypes": ["Corrective"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Respond", "Recover"]
+        },
+        {
+          "code": "A.5.25",
+          "title": "Assessment and decision on information security events",
+          "purpose": "Separate real incidents from routine events.",
+          "description": "Information security events are assessed and a decision is taken on whether they are to be categorised as information security incidents.",
+          "controlTypes": ["Detective"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Detect", "Respond"]
+        },
+        {
+          "code": "A.5.26",
+          "title": "Response to information security incidents",
+          "purpose": "Contain and resolve incidents consistently.",
+          "description": "Information security incidents are responded to in accordance with the documented procedures.",
+          "controlTypes": ["Corrective"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Respond", "Recover"]
+        },
+        {
+          "code": "A.5.27",
+          "title": "Learning from information security incidents",
+          "purpose": "Stop the same incident happening twice.",
+          "description": "Knowledge gained from incidents is used to strengthen and improve information security controls.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Identify", "Protect", "Detect"]
+        },
+        {
+          "code": "A.5.28",
+          "title": "Collection of evidence",
+          "purpose": "Preserve material that may be needed later.",
+          "description": "Procedures are established for the identification, collection, acquisition and preservation of evidence related to information security events.",
+          "controlTypes": ["Corrective"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Respond"]
+        },
+        {
+          "code": "A.5.29",
+          "title": "Information security during disruption",
+          "purpose": "Keep protection in place when normal operations fail.",
+          "description": "The organisation plans how to maintain information security at an appropriate level during disruption.",
+          "controlTypes": ["Preventive", "Corrective"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect", "Respond"]
+        },
+        {
+          "code": "A.5.30",
+          "title": "ICT readiness for business continuity",
+          "purpose": "Ensure technology can support continuity objectives.",
+          "description": "ICT readiness is planned, implemented, maintained and tested based on business continuity objectives and ICT continuity requirements.",
+          "controlTypes": ["Corrective"],
+          "securityProperties": ["Availability"],
+          "cybersecurityConcepts": ["Respond"]
+        },
+        {
+          "code": "A.5.31",
+          "title": "Legal, statutory, regulatory and contractual requirements",
+          "purpose": "Know and meet the obligations that apply.",
+          "description": "Legal, statutory, regulatory and contractual requirements relevant to information security, and the approach to meeting them, are identified, documented and kept up to date.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Identify"]
+        },
+        {
+          "code": "A.5.32",
+          "title": "Intellectual property rights",
+          "purpose": "Respect licensing and ownership of material.",
+          "description": "Appropriate procedures are implemented to protect intellectual property rights.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Identify"]
+        },
+        {
+          "code": "A.5.33",
+          "title": "Protection of records",
+          "purpose": "Keep records intact for as long as they are required.",
+          "description": "Records are protected from loss, destruction, falsification, unauthorised access and unauthorised release.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Identify", "Protect"]
+        },
+        {
+          "code": "A.5.34",
+          "title": "Privacy and protection of personally identifiable information",
+          "purpose": "Meet privacy obligations for personal data.",
+          "description": "The organisation identifies and meets the requirements regarding the preservation of privacy and protection of personally identifiable information according to applicable law and contracts.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Identify", "Protect"]
+        },
+        {
+          "code": "A.5.35",
+          "title": "Independent review of information security",
+          "purpose": "Obtain objective assurance over the ISMS.",
+          "description": "The organisation's approach to managing information security and its implementation is reviewed independently at planned intervals and when significant change occurs.",
+          "controlTypes": ["Preventive", "Corrective"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Identify", "Protect"]
+        },
+        {
+          "code": "A.5.36",
+          "title": "Compliance with policies, rules and standards for information security",
+          "purpose": "Confirm that the rules are actually followed.",
+          "description": "Compliance with the organisation's information security policy, topic-specific policies, rules and standards is regularly reviewed.",
+          "controlTypes": ["Preventive", "Detective"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Identify", "Protect"]
+        },
+        {
+          "code": "A.5.37",
+          "title": "Documented operating procedures",
+          "purpose": "Make routine operations repeatable and reviewable.",
+          "description": "Operating procedures for information processing facilities are documented and made available to the personnel who need them.",
+          "controlTypes": ["Preventive", "Corrective"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Identify", "Protect"]
+        }
+      ]
+    },
+    {
+      "code": "A.6",
+      "name": "People controls",
+      "description": "Controls covering the security responsibilities of individuals before, during and after employment.",
+      "controls": [
+        {
+          "code": "A.6.1",
+          "title": "Screening",
+          "purpose": "Verify candidates before granting access.",
+          "description": "Background verification checks on candidates are carried out before joining and on an ongoing basis, proportionate to business requirements, classification of information accessed and perceived risk.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Identify", "Protect"]
+        },
+        {
+          "code": "A.6.2",
+          "title": "Terms and conditions of employment",
+          "purpose": "Make security responsibilities part of the agreement.",
+          "description": "Employment contracts state the personnel's and the organisation's responsibilities for information security.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.6.3",
+          "title": "Information security awareness, education and training",
+          "purpose": "Give people the knowledge to work securely.",
+          "description": "Personnel and relevant interested parties receive appropriate awareness, education and training, plus regular updates to policies and procedures relevant to their role.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.6.4",
+          "title": "Disciplinary process",
+          "purpose": "Provide a consistent consequence for violations.",
+          "description": "A disciplinary process is formalised and communicated so action can be taken against personnel and other parties who have committed an information security policy violation.",
+          "controlTypes": ["Preventive", "Corrective"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect", "Respond"]
+        },
+        {
+          "code": "A.6.5",
+          "title": "Responsibilities after termination or change of employment",
+          "purpose": "Ensure obligations survive a role change.",
+          "description": "Information security responsibilities that remain valid after termination or change of employment are defined, enforced and communicated.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.6.6",
+          "title": "Confidentiality or non-disclosure agreements",
+          "purpose": "Formalise the duty to keep information private.",
+          "description": "Confidentiality or non-disclosure agreements reflecting the organisation's needs are identified, documented, regularly reviewed and signed by personnel and other relevant parties.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.6.7",
+          "title": "Remote working",
+          "purpose": "Protect information accessed away from the office.",
+          "description": "Security measures are implemented when personnel work remotely to protect information accessed, processed or stored outside the organisation's premises.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.6.8",
+          "title": "Information security event reporting",
+          "purpose": "Surface problems quickly through a known channel.",
+          "description": "A mechanism is provided for personnel to report observed or suspected information security events in a timely manner.",
+          "controlTypes": ["Detective"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Detect"]
+        }
+      ]
+    },
+    {
+      "code": "A.7",
+      "name": "Physical controls",
+      "description": "Controls protecting premises, equipment and physical media from unauthorised access, damage and interference.",
+      "controls": [
+        {
+          "code": "A.7.1",
+          "title": "Physical security perimeters",
+          "purpose": "Define and defend the boundary of secure areas.",
+          "description": "Security perimeters are defined and used to protect areas that contain information and other associated assets.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.7.2",
+          "title": "Physical entry",
+          "purpose": "Allow only authorised people into secure areas.",
+          "description": "Secure areas are protected by appropriate entry controls and access points.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.7.3",
+          "title": "Securing offices, rooms and facilities",
+          "purpose": "Apply physical protection to working areas.",
+          "description": "Physical security for offices, rooms and facilities is designed and implemented.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.7.4",
+          "title": "Physical security monitoring",
+          "purpose": "Detect unauthorised physical access.",
+          "description": "Premises are continuously monitored for unauthorised physical access.",
+          "controlTypes": ["Preventive", "Detective"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect", "Detect"]
+        },
+        {
+          "code": "A.7.5",
+          "title": "Protecting against physical and environmental threats",
+          "purpose": "Reduce the impact of fire, flood and similar hazards.",
+          "description": "Protection against physical and environmental threats, whether natural or intentional, is designed and implemented.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.7.6",
+          "title": "Working in secure areas",
+          "purpose": "Control behaviour inside sensitive locations.",
+          "description": "Security measures for working in secure areas are designed and implemented.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.7.7",
+          "title": "Clear desk and clear screen",
+          "purpose": "Prevent casual exposure of information.",
+          "description": "Clear desk rules for papers and removable storage media, and clear screen rules for information processing facilities, are defined and enforced.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.7.8",
+          "title": "Equipment siting and protection",
+          "purpose": "Place equipment where it is least exposed.",
+          "description": "Equipment is sited securely and protected from environmental and physical risks.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.7.9",
+          "title": "Security of assets off-premises",
+          "purpose": "Protect equipment taken outside the organisation.",
+          "description": "Assets located away from the organisation's premises are protected in a way that reflects the different risks involved.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.7.10",
+          "title": "Storage media",
+          "purpose": "Control media through its whole life.",
+          "description": "Storage media is managed through its life cycle of acquisition, use, transportation and disposal in accordance with the classification scheme and handling requirements.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.7.11",
+          "title": "Supporting utilities",
+          "purpose": "Keep power and other utilities from becoming a single point of failure.",
+          "description": "Information processing facilities are protected from power failures and other disruptions caused by failures in supporting utilities.",
+          "controlTypes": ["Preventive", "Detective"],
+          "securityProperties": ["Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect", "Detect"]
+        },
+        {
+          "code": "A.7.12",
+          "title": "Cabling security",
+          "purpose": "Protect the physical layer of the network.",
+          "description": "Cables carrying power, data or supporting information services are protected from interception, interference and damage.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.7.13",
+          "title": "Equipment maintenance",
+          "purpose": "Keep equipment working and secure.",
+          "description": "Equipment is maintained correctly to ensure the availability, integrity and confidentiality of the information it holds.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.7.14",
+          "title": "Secure disposal or re-use of equipment",
+          "purpose": "Ensure retired equipment leaks nothing.",
+          "description": "Items of equipment containing storage media are verified to ensure that sensitive data and licensed software have been removed or securely overwritten before disposal or re-use.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality"],
+          "cybersecurityConcepts": ["Protect"]
+        }
+      ]
+    },
+    {
+      "code": "A.8",
+      "name": "Technological controls",
+      "description": "Technical controls applied to systems, networks, applications and data.",
+      "controls": [
+        {
+          "code": "A.8.1",
+          "title": "User endpoint devices",
+          "purpose": "Protect information on laptops, desktops and mobile devices.",
+          "description": "Information stored on, processed by or accessible via user endpoint devices is protected.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.8.2",
+          "title": "Privileged access rights",
+          "purpose": "Tightly control powerful accounts.",
+          "description": "The allocation and use of privileged access rights is restricted and managed.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.8.3",
+          "title": "Information access restriction",
+          "purpose": "Enforce need-to-know inside applications.",
+          "description": "Access to information and other associated assets is restricted in accordance with the established access control policy.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.8.4",
+          "title": "Access to source code",
+          "purpose": "Protect the integrity of software being built.",
+          "description": "Read and write access to source code, development tools and software libraries is appropriately managed.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.8.5",
+          "title": "Secure authentication",
+          "purpose": "Make sign-in resistant to misuse.",
+          "description": "Secure authentication technologies and procedures are implemented based on information access restrictions and the access control policy.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.8.6",
+          "title": "Capacity management",
+          "purpose": "Ensure resources meet demand.",
+          "description": "The use of resources is monitored and adjusted in line with current and expected capacity requirements.",
+          "controlTypes": ["Preventive", "Detective"],
+          "securityProperties": ["Integrity", "Availability"],
+          "cybersecurityConcepts": ["Identify", "Protect", "Detect"]
+        },
+        {
+          "code": "A.8.7",
+          "title": "Protection against malware",
+          "purpose": "Prevent and detect malicious software.",
+          "description": "Protection against malware is implemented and supported by appropriate user awareness.",
+          "controlTypes": ["Preventive", "Detective", "Corrective"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect", "Detect"]
+        },
+        {
+          "code": "A.8.8",
+          "title": "Management of technical vulnerabilities",
+          "purpose": "Find and fix weaknesses before they are exploited.",
+          "description": "Information about technical vulnerabilities of systems in use is obtained, the organisation's exposure is evaluated and appropriate measures are taken.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Identify", "Protect"]
+        },
+        {
+          "code": "A.8.9",
+          "title": "Configuration management",
+          "purpose": "Keep systems in a known, secure state.",
+          "description": "Configurations of hardware, software, services and networks, including security configurations, are established, documented, implemented, monitored and reviewed.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.8.10",
+          "title": "Information deletion",
+          "purpose": "Remove data that is no longer required.",
+          "description": "Information stored in information systems, devices or other storage media is deleted when no longer required.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.8.11",
+          "title": "Data masking",
+          "purpose": "Limit exposure of sensitive data values.",
+          "description": "Data masking is used in accordance with the access control policy and business requirements, taking applicable legislation into consideration.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.8.12",
+          "title": "Data leakage prevention",
+          "purpose": "Stop sensitive information leaving without authority.",
+          "description": "Data leakage prevention measures are applied to systems, networks and other devices that process, store or transmit sensitive information.",
+          "controlTypes": ["Preventive", "Detective"],
+          "securityProperties": ["Confidentiality"],
+          "cybersecurityConcepts": ["Protect", "Detect"]
+        },
+        {
+          "code": "A.8.13",
+          "title": "Information backup",
+          "purpose": "Be able to restore information after loss.",
+          "description": "Backup copies of information, software and systems are maintained and regularly tested in accordance with the agreed backup policy.",
+          "controlTypes": ["Corrective"],
+          "securityProperties": ["Integrity", "Availability"],
+          "cybersecurityConcepts": ["Recover"]
+        },
+        {
+          "code": "A.8.14",
+          "title": "Redundancy of information processing facilities",
+          "purpose": "Meet availability requirements through redundancy.",
+          "description": "Information processing facilities are implemented with sufficient redundancy to meet availability requirements.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Availability"],
+          "cybersecurityConcepts": ["Protect", "Recover"]
+        },
+        {
+          "code": "A.8.15",
+          "title": "Logging",
+          "purpose": "Record what happened for later analysis.",
+          "description": "Logs recording activities, exceptions, faults and other relevant events are produced, stored, protected and analysed.",
+          "controlTypes": ["Detective"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Detect"]
+        },
+        {
+          "code": "A.8.16",
+          "title": "Monitoring activities",
+          "purpose": "Notice anomalous behaviour as it occurs.",
+          "description": "Networks, systems and applications are monitored for anomalous behaviour and appropriate action is taken to evaluate potential incidents.",
+          "controlTypes": ["Detective", "Corrective"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Detect", "Respond"]
+        },
+        {
+          "code": "A.8.17",
+          "title": "Clock synchronisation",
+          "purpose": "Make log timestamps comparable across systems.",
+          "description": "The clocks of information processing systems are synchronised to approved time sources.",
+          "controlTypes": ["Detective"],
+          "securityProperties": ["Integrity"],
+          "cybersecurityConcepts": ["Protect", "Detect"]
+        },
+        {
+          "code": "A.8.18",
+          "title": "Use of privileged utility programs",
+          "purpose": "Restrict tools that can bypass controls.",
+          "description": "The use of utility programs capable of overriding system and application controls is restricted and tightly controlled.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.8.19",
+          "title": "Installation of software on operational systems",
+          "purpose": "Control what runs in production.",
+          "description": "Procedures and measures are implemented to securely manage software installation on operational systems.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.8.20",
+          "title": "Networks security",
+          "purpose": "Protect information travelling over networks.",
+          "description": "Networks and network devices are secured, managed and controlled to protect information in systems and applications.",
+          "controlTypes": ["Preventive", "Detective"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect", "Detect"]
+        },
+        {
+          "code": "A.8.21",
+          "title": "Security of network services",
+          "purpose": "Define the security expected from each service.",
+          "description": "Security mechanisms, service levels and service requirements of network services are identified, implemented and monitored.",
+          "controlTypes": ["Preventive", "Detective"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect", "Detect"]
+        },
+        {
+          "code": "A.8.22",
+          "title": "Segregation of networks",
+          "purpose": "Limit how far an intruder can move.",
+          "description": "Groups of information services, users and information systems are segregated in the organisation's networks.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.8.23",
+          "title": "Web filtering",
+          "purpose": "Reduce exposure to malicious content.",
+          "description": "Access to external websites is managed to reduce exposure to malicious content.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.8.24",
+          "title": "Use of cryptography",
+          "purpose": "Apply encryption and key management consistently.",
+          "description": "Rules for the effective use of cryptography, including cryptographic key management, are defined and implemented.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.8.25",
+          "title": "Secure development life cycle",
+          "purpose": "Build security into the way software is produced.",
+          "description": "Rules for the secure development of software and systems are established and applied.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.8.26",
+          "title": "Application security requirements",
+          "purpose": "State security needs before building.",
+          "description": "Information security requirements are identified, specified and approved when developing or acquiring applications.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.8.27",
+          "title": "Secure system architecture and engineering principles",
+          "purpose": "Apply proven design principles.",
+          "description": "Principles for engineering secure systems are established, documented, maintained and applied to information system development activities.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.8.28",
+          "title": "Secure coding",
+          "purpose": "Avoid introducing vulnerabilities in code.",
+          "description": "Secure coding principles are applied to software development.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.8.29",
+          "title": "Security testing in development and acceptance",
+          "purpose": "Verify security before release.",
+          "description": "Security testing processes are defined and implemented in the development life cycle.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Identify", "Protect"]
+        },
+        {
+          "code": "A.8.30",
+          "title": "Outsourced development",
+          "purpose": "Keep assurance over work done by others.",
+          "description": "The organisation directs, monitors and reviews the activities related to outsourced system development.",
+          "controlTypes": ["Preventive", "Detective"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Identify", "Protect", "Detect"]
+        },
+        {
+          "code": "A.8.31",
+          "title": "Separation of development, test and production environments",
+          "purpose": "Prevent non-production work affecting live systems.",
+          "description": "Development, testing and production environments are separated and secured.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.8.32",
+          "title": "Change management",
+          "purpose": "Control change so security is not lost.",
+          "description": "Changes to information processing facilities and information systems are subject to change management procedures.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.8.33",
+          "title": "Test information",
+          "purpose": "Avoid exposing real data during testing.",
+          "description": "Test information is appropriately selected, protected and managed.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity"],
+          "cybersecurityConcepts": ["Protect"]
+        },
+        {
+          "code": "A.8.34",
+          "title": "Protection of information systems during audit testing",
+          "purpose": "Stop audit activity disrupting operations.",
+          "description": "Audit tests and other assurance activities involving assessment of operational systems are planned and agreed between the tester and appropriate management.",
+          "controlTypes": ["Preventive"],
+          "securityProperties": ["Confidentiality", "Integrity", "Availability"],
+          "cybersecurityConcepts": ["Protect"]
+        }
+      ]
+    }
+  ]
+}

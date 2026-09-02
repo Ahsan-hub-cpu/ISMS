@@ -1,0 +1,533 @@
+// ISMS Gap Analysis & Compliance Tracking Platform
+// The schema is grouped by the module that introduced each model.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Module 0: Foundation
+// ---------------------------------------------------------------------------
+
+/// The health district that owns the ISMS (single tenant for this project).
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  shortName String   @db.VarChar(32)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sites           Site[]
+  registerEntries RegisterEntry[]
+  assessments     Assessment[]
+  evidence        Evidence[]
+  remediations    RemediationAction[]
+
+  @@map("organizations")
+}
+
+/// A physical facility (hospital, clinic, admin site) the ISMS applies to.
+model Site {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  code           String   @db.VarChar(16)
+  region         String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  users           User[]
+  registerEntries RegisterEntry[]
+
+  @@unique([organizationId, code])
+  @@index([organizationId])
+  @@map("sites")
+}
+
+// ---------------------------------------------------------------------------
+// Module 1: Authentication & role-based access control
+// ---------------------------------------------------------------------------
+
+/// Roles defined in the project proposal. Permissions are derived from the role
+/// in the domain layer, so the database only stores the role itself.
+enum UserRole {
+  ADMINISTRATOR
+  ASSESSOR
+  CONTROL_OWNER
+  VIEWER
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  fullName     String
+  jobTitle     String?
+  passwordHash String
+  role         UserRole  @default(VIEWER)
+  isActive     Boolean   @default(true)
+  siteId       String?
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  site Site? @relation(fields: [siteId], references: [id], onDelete: SetNull)
+
+  ownedRegisterEntries RegisterEntry[]      @relation("RegisterOwner")
+  ledAssessments       Assessment[]         @relation("AssessmentLead")
+  approvedAssessments  Assessment[]         @relation("AssessmentApprover")
+  assessedItems        AssessmentItem[]     @relation("ItemAssessor")
+  identifiedGaps       Gap[]                @relation("GapIdentifier")
+  verifiedGaps         Gap[]                @relation("GapVerifier")
+  uploadedEvidence     Evidence[]           @relation("EvidenceUploader")
+  reviewedEvidence     Evidence[]           @relation("EvidenceReviewer")
+  ownedRemediations    RemediationAction[]  @relation("RemediationOwner")
+  createdRemediations  RemediationAction[]  @relation("RemediationCreator")
+  remediationComments  RemediationComment[]
+  auditEntries         AuditLogEntry[]
+
+  @@index([role])
+  @@index([siteId])
+  @@map("users")
+}
+
+// ---------------------------------------------------------------------------
+// Module 2: Framework and control catalogue
+// ---------------------------------------------------------------------------
+
+/// A recognised standard the organisation is assessed against, for example
+/// ISO/IEC 27001:2022. Keeping this as data allows a second framework to be
+/// added later without changing the assessment logic.
+model Framework {
+  id          String   @id @default(cuid())
+  code        String   @unique @db.VarChar(64)
+  name        String
+  version     String   @db.VarChar(16)
+  publisher   String
+  description String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  themes      ControlTheme[]
+  controls    Control[]
+  assessments Assessment[]
+
+  @@map("frameworks")
+}
+
+/// A grouping of controls within a framework, such as Annex A theme "A.8".
+model ControlTheme {
+  id          String @id @default(cuid())
+  frameworkId String
+  code        String @db.VarChar(16)
+  name        String
+  description String
+  sortOrder   Int
+
+  framework Framework @relation(fields: [frameworkId], references: [id], onDelete: Cascade)
+  controls  Control[]
+
+  @@unique([frameworkId, code])
+  @@index([frameworkId])
+  @@map("control_themes")
+}
+
+/// A single requirement of the framework. Assessments, gaps, evidence and
+/// remediation all reference a control from this catalogue.
+model Control {
+  id                    String   @id @default(cuid())
+  frameworkId           String
+  themeId               String
+  code                  String   @db.VarChar(16)
+  title                 String
+  purpose               String
+  description           String
+  controlTypes          String[]
+  securityProperties    String[]
+  cybersecurityConcepts String[]
+  sortOrder             Int
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  framework       Framework           @relation(fields: [frameworkId], references: [id], onDelete: Cascade)
+  theme           ControlTheme        @relation(fields: [themeId], references: [id], onDelete: Cascade)
+  registerEntries RegisterEntry[]
+  assessmentItems AssessmentItem[]
+  gaps            Gap[]
+  evidenceLinks   EvidenceLink[]
+  remediations    RemediationAction[]
+
+  @@unique([frameworkId, code])
+  @@index([themeId])
+  @@index([frameworkId, sortOrder])
+  @@map("controls")
+}
+
+// ---------------------------------------------------------------------------
+// Module 3: Control register
+// ---------------------------------------------------------------------------
+
+/// Whether a control applies to the organisation. Exclusions must be justified,
+/// which mirrors the statement of applicability required by the standard.
+enum Applicability {
+  APPLICABLE
+  NOT_APPLICABLE
+}
+
+enum ImplementationStatus {
+  NOT_IMPLEMENTED
+  PLANNED
+  PARTIALLY_IMPLEMENTED
+  IMPLEMENTED
+}
+
+/// The organisation's own position on a framework control: who owns it, whether
+/// it applies, and how far it has been implemented.
+model RegisterEntry {
+  id                   String               @id @default(cuid())
+  organizationId       String
+  controlId            String
+  ownerId              String?
+  siteId               String?
+  applicability        Applicability        @default(APPLICABLE)
+  justification        String?
+  implementationStatus ImplementationStatus @default(NOT_IMPLEMENTED)
+  implementationNotes  String?
+  reviewDueAt          DateTime?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  control      Control      @relation(fields: [controlId], references: [id], onDelete: Cascade)
+  owner        User?        @relation("RegisterOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  site         Site?        @relation(fields: [siteId], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, controlId])
+  @@index([ownerId])
+  @@index([implementationStatus])
+  @@map("register_entries")
+}
+
+// ---------------------------------------------------------------------------
+// Module 4: Assessments
+// ---------------------------------------------------------------------------
+
+enum AssessmentStatus {
+  DRAFT
+  IN_PROGRESS
+  SUBMITTED
+  APPROVED
+}
+
+enum ComplianceStatus {
+  NOT_ASSESSED
+  COMPLIANT
+  PARTIALLY_COMPLIANT
+  NON_COMPLIANT
+  NOT_APPLICABLE
+}
+
+/// One pass of the gap analysis over a framework at a point in time.
+model Assessment {
+  id             String           @id @default(cuid())
+  organizationId String
+  frameworkId    String
+  reference      String           @db.VarChar(32)
+  title          String
+  scope          String
+  status         AssessmentStatus @default(DRAFT)
+  leadAssessorId String
+  startedAt      DateTime         @default(now())
+  submittedAt    DateTime?
+  approvedAt     DateTime?
+  approvedById   String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  framework    Framework        @relation(fields: [frameworkId], references: [id], onDelete: Restrict)
+  leadAssessor User             @relation("AssessmentLead", fields: [leadAssessorId], references: [id], onDelete: Restrict)
+  approvedBy   User?            @relation("AssessmentApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  items        AssessmentItem[]
+  gaps         Gap[]
+
+  @@unique([organizationId, reference])
+  @@index([status])
+  @@map("assessments")
+}
+
+/// The assessor's finding for a single control within an assessment.
+model AssessmentItem {
+  id              String           @id @default(cuid())
+  assessmentId    String
+  controlId       String
+  status          ComplianceStatus @default(NOT_ASSESSED)
+  currentPractice String?
+  rationale       String?
+  assessedById    String?
+  assessedAt      DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  assessment    Assessment     @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  control       Control        @relation(fields: [controlId], references: [id], onDelete: Cascade)
+  assessedBy    User?          @relation("ItemAssessor", fields: [assessedById], references: [id], onDelete: SetNull)
+  gap           Gap?
+  evidenceLinks EvidenceLink[]
+
+  @@unique([assessmentId, controlId])
+  @@index([status])
+  @@map("assessment_items")
+}
+
+// ---------------------------------------------------------------------------
+// Module 5: Gap management
+// ---------------------------------------------------------------------------
+
+enum RiskRating {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+/// Lifecycle of a gap. A finding can raise or reopen a gap and move it to
+/// AWAITING_REVIEW, but only an assessor can move it to RESOLVED.
+enum GapStatus {
+  OPEN
+  IN_PROGRESS
+  AWAITING_REVIEW
+  RESOLVED
+  RISK_ACCEPTED
+}
+
+/// The documented difference between a framework requirement and current practice.
+model Gap {
+  id                      String     @id @default(cuid())
+  assessmentId            String
+  assessmentItemId        String     @unique
+  controlId               String
+  reference               String     @db.VarChar(32)
+  summary                 String
+  /// Confirmed wording the assessor is accountable for.
+  description             String
+  recommendation          String
+  /// The system's draft, retained so an edit can be compared against it.
+  generatedDescription    String
+  generatedRecommendation String
+  descriptionEditedAt     DateTime?
+  recommendationEditedAt  DateTime?
+  riskRating              RiskRating @default(MEDIUM)
+  /// Output of the project-defined risk scoring model, stored so a rating can
+  /// always be explained even after the model or the control data changes.
+  riskScore               Int        @default(0)
+  riskMaximumScore        Int        @default(0)
+  riskModelVersion        String     @default("")
+  riskFactors             Json       @default("[]")
+  /// True once an assessor overrode the calculated rating by hand.
+  riskRatingOverridden    Boolean    @default(false)
+  status                  GapStatus  @default(OPEN)
+  identifiedById          String?
+  identifiedAt            DateTime   @default(now())
+  verifiedById            String?
+  verifiedAt              DateTime?
+  resolvedAt              DateTime?
+  createdAt               DateTime   @default(now())
+  updatedAt               DateTime   @updatedAt
+
+  assessment     Assessment          @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  assessmentItem AssessmentItem      @relation(fields: [assessmentItemId], references: [id], onDelete: Cascade)
+  control        Control             @relation(fields: [controlId], references: [id], onDelete: Cascade)
+  identifiedBy   User?               @relation("GapIdentifier", fields: [identifiedById], references: [id], onDelete: SetNull)
+  verifiedBy     User?               @relation("GapVerifier", fields: [verifiedById], references: [id], onDelete: SetNull)
+  remediations   RemediationAction[]
+  evidenceLinks  EvidenceLink[]
+
+  @@index([status])
+  @@index([riskRating])
+  @@map("gaps")
+}
+
+// ---------------------------------------------------------------------------
+// Module 6: Evidence
+// ---------------------------------------------------------------------------
+
+enum EvidenceKind {
+  DOCUMENT
+  LINK
+}
+
+enum EvidenceReviewStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+/// A document or link that supports an assessment decision or proves that a
+/// remediation action was completed.
+model Evidence {
+  id             String               @id @default(cuid())
+  organizationId String
+  title          String
+  description    String?
+  kind           EvidenceKind
+  url            String?
+  fileName       String?
+  storedFileName String?
+  mimeType       String?
+  fileSize       Int?
+  uploadedById   String?
+  reviewStatus   EvidenceReviewStatus @default(PENDING)
+  reviewNote     String?
+  reviewedById   String?
+  reviewedAt     DateTime?
+  validUntil     DateTime?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  uploadedBy   User?          @relation("EvidenceUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+  reviewedBy   User?          @relation("EvidenceReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  links        EvidenceLink[]
+
+  @@index([reviewStatus])
+  @@map("evidence")
+}
+
+/// Connects one piece of evidence to the control, finding, gap or action it
+/// supports. Optional foreign keys keep every link explicit and queryable.
+model EvidenceLink {
+  id               String   @id @default(cuid())
+  evidenceId       String
+  controlId        String?
+  assessmentItemId String?
+  gapId            String?
+  remediationId    String?
+  createdAt        DateTime @default(now())
+
+  evidence       Evidence           @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+  control        Control?           @relation(fields: [controlId], references: [id], onDelete: Cascade)
+  assessmentItem AssessmentItem?    @relation(fields: [assessmentItemId], references: [id], onDelete: Cascade)
+  gap            Gap?               @relation(fields: [gapId], references: [id], onDelete: Cascade)
+  remediation    RemediationAction? @relation(fields: [remediationId], references: [id], onDelete: Cascade)
+
+  @@index([evidenceId])
+  @@index([controlId])
+  @@index([gapId])
+  @@index([remediationId])
+  @@map("evidence_links")
+}
+
+// ---------------------------------------------------------------------------
+// Module 7: Remediation
+// ---------------------------------------------------------------------------
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RemediationStatus {
+  OPEN
+  IN_PROGRESS
+  IN_REVIEW
+  COMPLETED
+  CANCELLED
+}
+
+/// A tracked action that closes or reduces a gap.
+model RemediationAction {
+  id              String            @id @default(cuid())
+  organizationId  String
+  gapId           String?
+  controlId       String?
+  reference       String            @db.VarChar(32)
+  title           String
+  description     String
+  ownerId         String?
+  priority        Priority          @default(MEDIUM)
+  status          RemediationStatus @default(OPEN)
+  progressPercent Int               @default(0)
+  dueAt           DateTime?
+  completedAt     DateTime?
+  createdById     String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  organization  Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  gap           Gap?                 @relation(fields: [gapId], references: [id], onDelete: SetNull)
+  control       Control?             @relation(fields: [controlId], references: [id], onDelete: SetNull)
+  owner         User?                @relation("RemediationOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  createdBy     User?                @relation("RemediationCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  comments      RemediationComment[]
+  evidenceLinks EvidenceLink[]
+
+  @@unique([organizationId, reference])
+  @@index([status])
+  @@index([ownerId])
+  @@index([dueAt])
+  @@map("remediation_actions")
+}
+
+model RemediationComment {
+  id            String   @id @default(cuid())
+  remediationId String
+  authorId      String?
+  body          String
+  createdAt     DateTime @default(now())
+
+  remediation RemediationAction @relation(fields: [remediationId], references: [id], onDelete: Cascade)
+  author      User?             @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([remediationId])
+  @@map("remediation_comments")
+}
+
+// ---------------------------------------------------------------------------
+// Module 9: Audit log
+// ---------------------------------------------------------------------------
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  SUBMIT
+  APPROVE
+  REVIEW
+  VERIFY
+  REJECT
+  SIGN_IN
+  SIGN_OUT
+}
+
+/// Immutable record of who changed what. Rows are only ever inserted: no
+/// repository, use case or API route exposes an update or delete, so the
+/// history cannot be rewritten from the application.
+/// The actor email is denormalised so the history stays readable even if the
+/// account is later removed.
+model AuditLogEntry {
+  id         String      @id @default(cuid())
+  actorId    String?
+  actorEmail String
+  actorName  String
+  action     AuditAction
+  entityType String      @db.VarChar(48)
+  entityId   String?
+  summary    String
+  createdAt  DateTime    @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([entityType, entityId])
+  @@map("audit_log_entries")
+}

@@ -1,26 +1,83 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --color-brand-50: oklch(0.97 0.02 255);
+  --color-brand-100: oklch(0.94 0.04 255);
+  --color-brand-200: oklch(0.88 0.07 255);
+  --color-brand-300: oklch(0.79 0.11 258);
+  --color-brand-400: oklch(0.7 0.15 261);
+  --color-brand-500: oklch(0.62 0.18 263);
+  --color-brand-600: oklch(0.55 0.19 264);
+  --color-brand-700: oklch(0.47 0.17 264);
+  --color-brand-800: oklch(0.4 0.14 264);
+  --color-brand-900: oklch(0.33 0.11 264);
+  --color-brand-950: oklch(0.23 0.08 265);
+
+  --radius-card: 0.875rem;
+
+  --shadow-soft: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 8px 24px -12px rgb(15 23 42 / 0.12);
+  --shadow-raised: 0 1px 2px 0 rgb(15 23 42 / 0.06), 0 16px 40px -16px rgb(15 23 42 / 0.22);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --surface: oklch(0.99 0.002 255);
+  --surface-raised: oklch(1 0 0);
+  --surface-border: oklch(0.92 0.005 255);
+  --content: oklch(0.24 0.02 260);
+  --content-muted: oklch(0.53 0.02 260);
+}
+
+.dark {
+  --surface: oklch(0.19 0.014 264);
+  --surface-raised: oklch(0.23 0.016 264);
+  --surface-border: oklch(0.31 0.018 264);
+  --content: oklch(0.96 0.005 260);
+  --content-muted: oklch(0.72 0.015 260);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-border: var(--surface-border);
+  --color-content: var(--content);
+  --color-content-muted: var(--content-muted);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    border-color: var(--surface-border);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--surface);
+    color: var(--content);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  ::selection {
+    background-color: var(--color-brand-200);
+    color: var(--color-brand-950);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .surface-card {
+    background-color: var(--surface-raised);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-soft);
+  }
 }
