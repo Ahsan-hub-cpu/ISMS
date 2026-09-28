@@ -8,6 +8,7 @@ import type { UserRole } from "./user";
 export const PERMISSIONS = [
   "users:read",
   "users:manage",
+  "organization:manage",
   "frameworks:read",
   "frameworks:manage",
   "register:read",

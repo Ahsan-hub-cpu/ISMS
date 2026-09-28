@@ -1,9 +1,15 @@
-import { ClipboardList } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  CircleDashed,
+  ClipboardList,
+  XCircle,
+} from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { AssessmentStatusBadge } from "@/components/domain/status-badge";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { Card, CardBody, CardHeader, CardToolbar } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { PageHeader } from "@/components/ui/page-header";
@@ -55,8 +61,9 @@ export default async function AssessmentDetailPage({
   return (
     <>
       <PageHeader
+        eyebrow={`Assessment ${assessment.reference}`}
         title={assessment.title}
-        description={`${assessment.reference} · ${assessment.frameworkName} · led by ${assessment.leadAssessorName}`}
+        description={`${assessment.frameworkName} · led by ${assessment.leadAssessorName}`}
         actions={
           <div className="flex items-center gap-3">
             <AssessmentStatusBadge status={assessment.status} />
@@ -71,25 +78,42 @@ export default async function AssessmentDetailPage({
       />
 
       <Card>
-        <CardBody className="space-y-1">
-          <p className="text-xs font-medium uppercase tracking-wide text-content-muted">Scope</p>
-          <p className="text-sm">{assessment.scope}</p>
+        <CardBody className="space-y-1.5">
+          <p className="eyebrow">Scope</p>
+          <p className="text-sm leading-relaxed text-content">{assessment.scope}</p>
         </CardBody>
       </Card>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Compliant" value={progress.byStatus.COMPLIANT} tone="success" />
-        <Stat label="Partially compliant" value={progress.byStatus.PARTIALLY_COMPLIANT} tone="warning" />
-        <Stat label="Non-compliant" value={progress.byStatus.NON_COMPLIANT} tone="danger" />
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Stat
+          icon={CheckCircle2}
+          label="Compliant"
+          value={progress.byStatus.COMPLIANT}
+          tone="success"
+        />
+        <Stat
+          icon={AlertTriangle}
+          label="Partially compliant"
+          value={progress.byStatus.PARTIALLY_COMPLIANT}
+          tone="warning"
+        />
+        <Stat
+          icon={XCircle}
+          label="Non-compliant"
+          value={progress.byStatus.NON_COMPLIANT}
+          tone="danger"
+        />
+        <Stat
+          icon={CircleDashed}
           label="Still to assess"
           value={progress.byStatus.NOT_ASSESSED}
           hint={`${progress.byStatus.NOT_APPLICABLE} marked not applicable`}
+          tone="brand"
         />
       </div>
 
       <Card>
-        <CardBody className="grid gap-4 sm:grid-cols-2">
+        <CardBody className="grid gap-6 sm:grid-cols-2 sm:gap-8">
           <Progress
             value={progress.completionPercent}
             label={`Assessed ${progress.assessed} of ${progress.total} controls`}
@@ -100,6 +124,7 @@ export default async function AssessmentDetailPage({
 
       <Card>
         <CardHeader
+          icon={ClipboardList}
           title="Controls"
           description={
             readOnly
@@ -108,7 +133,7 @@ export default async function AssessmentDetailPage({
           }
         />
 
-        <CardBody className="space-y-4">
+        <CardToolbar>
           <FilterBar
             searchPlaceholder="Search by control code or title…"
             filters={[
@@ -131,7 +156,9 @@ export default async function AssessmentDetailPage({
               },
             ]}
           />
+        </CardToolbar>
 
+        <CardBody className="space-y-4">
           {!items || items.items.length === 0 ? (
             <EmptyState
               icon={ClipboardList}
@@ -139,7 +166,7 @@ export default async function AssessmentDetailPage({
               description="Clear the filters to see the full checklist."
             />
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {items.items.map((item) => (
                 <FindingForm key={item.id} item={item} readOnly={readOnly} />
               ))}

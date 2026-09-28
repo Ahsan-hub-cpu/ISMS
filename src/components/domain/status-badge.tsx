@@ -83,27 +83,39 @@ const EVIDENCE_TONES: Record<keyof typeof EVIDENCE_REVIEW_LABELS, BadgeTone> = {
 };
 
 export const ComplianceBadge = ({ status }: { status: ComplianceStatus }) => (
-  <Badge tone={COMPLIANCE_TONES[status]}>{COMPLIANCE_STATUS_LABELS[status]}</Badge>
+  <Badge tone={COMPLIANCE_TONES[status]} dot>
+    {COMPLIANCE_STATUS_LABELS[status]}
+  </Badge>
 );
 
 export const RiskBadge = ({ rating }: { rating: RiskRating }) => (
-  <Badge tone={RISK_TONES[rating]}>{RISK_LABELS[rating]}</Badge>
+  <Badge tone={RISK_TONES[rating]} dot>
+    {RISK_LABELS[rating]}
+  </Badge>
 );
 
 export const GapStatusBadge = ({ status }: { status: GapStatus }) => (
-  <Badge tone={GAP_TONES[status]}>{GAP_STATUS_LABELS[status]}</Badge>
+  <Badge tone={GAP_TONES[status]} dot>
+    {GAP_STATUS_LABELS[status]}
+  </Badge>
 );
 
 export const ImplementationBadge = ({ status }: { status: ImplementationStatus }) => (
-  <Badge tone={IMPLEMENTATION_TONES[status]}>{IMPLEMENTATION_LABELS[status]}</Badge>
+  <Badge tone={IMPLEMENTATION_TONES[status]} dot>
+    {IMPLEMENTATION_LABELS[status]}
+  </Badge>
 );
 
 export const AssessmentStatusBadge = ({ status }: { status: AssessmentStatus }) => (
-  <Badge tone={ASSESSMENT_TONES[status]}>{ASSESSMENT_STATUS_LABELS[status]}</Badge>
+  <Badge tone={ASSESSMENT_TONES[status]} dot>
+    {ASSESSMENT_STATUS_LABELS[status]}
+  </Badge>
 );
 
 export const RemediationStatusBadge = ({ status }: { status: RemediationStatus }) => (
-  <Badge tone={REMEDIATION_TONES[status]}>{REMEDIATION_STATUS_LABELS[status]}</Badge>
+  <Badge tone={REMEDIATION_TONES[status]} dot>
+    {REMEDIATION_STATUS_LABELS[status]}
+  </Badge>
 );
 
 export const PriorityBadge = ({ priority }: { priority: Priority }) => (
@@ -114,4 +126,8 @@ export const EvidenceReviewBadge = ({
   status,
 }: {
   status: keyof typeof EVIDENCE_REVIEW_LABELS;
-}) => <Badge tone={EVIDENCE_TONES[status]}>{EVIDENCE_REVIEW_LABELS[status]}</Badge>;
+}) => (
+  <Badge tone={EVIDENCE_TONES[status]} dot>
+    {EVIDENCE_REVIEW_LABELS[status]}
+  </Badge>
+);

@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   Library,
   ListChecks,
+  MapPin,
   ScrollText,
   ShieldAlert,
   Users,
@@ -96,6 +97,13 @@ const allSections: NavSection[] = [
         href: "/admin/users",
         icon: Users,
         permission: "users:read",
+        available: true,
+      },
+      {
+        label: "Sites",
+        href: "/admin/sites",
+        icon: MapPin,
+        permission: "organization:manage",
         available: true,
       },
       {

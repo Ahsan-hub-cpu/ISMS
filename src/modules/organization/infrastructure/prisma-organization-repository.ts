@@ -36,4 +36,23 @@ export const prismaOrganizationRepository: OrganizationRepository = {
     });
     return rows.map(toSite);
   },
+
+  async findSiteByCode(organizationId, code) {
+    const row = await prisma.site.findUnique({
+      where: { organizationId_code: { organizationId, code } },
+    });
+    return row ? toSite(row) : null;
+  },
+
+  async createSite(data) {
+    const row = await prisma.site.create({
+      data: {
+        organizationId: data.organizationId,
+        name: data.name,
+        code: data.code,
+        region: data.region,
+      },
+    });
+    return toSite(row);
+  },
 };

@@ -1,3 +1,4 @@
+import { BadgeCheck, FileSearch, FolderLock, Gavel, Scale, Wrench } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -46,8 +47,9 @@ export default async function GapDetailPage({ params }: { params: Promise<{ id: 
   return (
     <>
       <PageHeader
+        eyebrow={`Gap ${gap.reference}`}
         title={gap.summary}
-        description={`${gap.reference} · raised by ${gap.assessmentReference} · ${gap.controlCode} ${gap.controlTitle}`}
+        description={`Raised by ${gap.assessmentReference} · ${gap.controlCode} ${gap.controlTitle}`}
         actions={
           <div className="flex items-center gap-2">
             <RiskBadge rating={gap.riskRating} />
@@ -60,16 +62,20 @@ export default async function GapDetailPage({ params }: { params: Promise<{ id: 
         <div className="space-y-4">
           <Card>
             <CardHeader
+              icon={FileSearch}
               title="What was found"
               description={`Identified on ${formatDate(gap.identifiedAt)}${gap.identifiedByName ? ` by ${gap.identifiedByName}` : ""}.`}
             />
             <CardBody>
-              <p className="whitespace-pre-line text-sm leading-relaxed">{gap.description}</p>
+              <p className="whitespace-pre-line text-sm leading-relaxed text-content">
+                {gap.description}
+              </p>
             </CardBody>
           </Card>
 
           <Card>
             <CardHeader
+              icon={Wrench}
               title="Remediation"
               description="An action is scheduled automatically when the gap is raised. Its due date comes from this project's internal remediation SLA, not from ISO/IEC 27001."
             />
@@ -79,7 +85,10 @@ export default async function GapDetailPage({ params }: { params: Promise<{ id: 
               ) : (
                 <ul className="space-y-3">
                   {actions.map((action) => (
-                    <li key={action.id} className="rounded-lg border px-4 py-3">
+                    <li
+                      key={action.id}
+                      className="rounded-xl border border-surface-border bg-surface-sunken/40 px-4 py-3.5"
+                    >
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <Link
                           href={`/remediation/${action.id}`}
@@ -111,7 +120,7 @@ export default async function GapDetailPage({ params }: { params: Promise<{ id: 
 
           {can(session.role, "gaps:manage") ? (
             <Card>
-              <CardHeader title="Assessor decision" />
+              <CardHeader icon={Gavel} title="Assessor decision" />
               <CardBody>
                 <GapDecisionForm gap={gap} closureBlockers={blockers} />
               </CardBody>
@@ -122,10 +131,11 @@ export default async function GapDetailPage({ params }: { params: Promise<{ id: 
         <div className="space-y-4">
           <Card>
             <CardHeader
+              icon={Scale}
               title="How the risk was rated"
               description={`Scored ${gap.riskScore} out of ${gap.riskMaximumScore} by this project's risk model. ISO/IEC 27001 requires an organisation to set its own risk criteria; it does not define this formula.`}
             />
-            <CardBody className="space-y-3">
+            <CardBody className="space-y-4">
               {gap.riskMaximumScore > 0 ? (
                 <Progress value={(gap.riskScore / gap.riskMaximumScore) * 100} />
               ) : null}
@@ -134,17 +144,19 @@ export default async function GapDetailPage({ params }: { params: Promise<{ id: 
                 {gap.riskFactors.map((factor) => (
                   <li key={factor.code}>
                     <div className="flex items-start justify-between gap-3">
-                      <span className="font-medium">{factor.label}</span>
-                      <span className="shrink-0 tabular-nums text-content-muted">
+                      <span className="font-medium text-content">{factor.label}</span>
+                      <span className="shrink-0 font-display text-xs font-semibold tabular-nums text-content-muted">
                         {factor.points} / {factor.maximum}
                       </span>
                     </div>
-                    <p className="mt-0.5 text-xs text-content-muted">{factor.detail}</p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-content-muted">
+                      {factor.detail}
+                    </p>
                   </li>
                 ))}
               </ul>
 
-              <p className="border-t pt-3 text-xs text-content-muted">
+              <p className="border-t border-surface-border pt-3 text-xs leading-relaxed text-content-muted">
                 {gap.riskScore} of {gap.riskMaximumScore} points falls in the{" "}
                 <strong>{gap.riskRating.toLowerCase()}</strong> band.
                 {gap.riskRatingOverridden
@@ -157,6 +169,7 @@ export default async function GapDetailPage({ params }: { params: Promise<{ id: 
 
           <Card>
             <CardHeader
+              icon={BadgeCheck}
               title="Verification"
               description="What has to be true before this gap can be closed."
             />
@@ -180,7 +193,11 @@ export default async function GapDetailPage({ params }: { params: Promise<{ id: 
           </Card>
 
           <Card>
-            <CardHeader title="Evidence" description="Anything that supports or closes this gap." />
+            <CardHeader
+              icon={FolderLock}
+              title="Evidence"
+              description="Anything that supports or closes this gap."
+            />
             <CardBody className="space-y-3">
               {evidence.length === 0 ? (
                 <p className="text-sm text-content-muted">No evidence attached yet.</p>

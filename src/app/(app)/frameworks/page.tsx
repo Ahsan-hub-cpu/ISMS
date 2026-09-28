@@ -19,6 +19,7 @@ export default async function FrameworksPage() {
   return (
     <>
       <PageHeader
+        eyebrow="Reference data"
         title="Frameworks"
         description="Recognised standards the organisation is assessed against. Every assessment, gap and piece of evidence is linked back to a control in one of these catalogues."
       />
@@ -36,24 +37,31 @@ export default async function FrameworksPage() {
             <Link
               key={framework.id}
               href={`/frameworks/${framework.code}`}
-              className="group surface-card flex flex-col gap-4 p-5 transition-shadow hover:shadow-[var(--shadow-raised)]"
+              className="group surface-card hover-lift flex flex-col gap-4 p-5 hover:border-brand-200 dark:hover:border-brand-800"
             >
               <div className="flex items-start gap-3">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-200">
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700 ring-1 ring-inset ring-brand-100 transition-colors group-hover:bg-brand-100 dark:bg-brand-950/60 dark:text-brand-300 dark:ring-brand-900">
                   <Library className="size-5" aria-hidden />
                 </span>
-                <div className="min-w-0 space-y-1">
-                  <h2 className="font-semibold tracking-tight">{framework.name}</h2>
-                  <p className="text-xs text-content-muted">{framework.publisher}</p>
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <h2 className="font-display font-semibold tracking-tight">{framework.name}</h2>
+                  <p className="text-xs text-content-subtle">{framework.publisher}</p>
                 </div>
-                {framework.isActive ? <Badge tone="success">Active</Badge> : null}
+                {framework.isActive ? (
+                  <Badge tone="success" dot>
+                    Active
+                  </Badge>
+                ) : null}
               </div>
 
-              <p className="text-sm text-content-muted">{framework.description}</p>
+              <p className="text-sm leading-relaxed text-content-muted">{framework.description}</p>
 
-              <span className="mt-auto inline-flex items-center gap-1.5 text-sm font-medium text-brand-700 dark:text-brand-300">
+              <span className="mt-auto inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 dark:text-brand-300">
                 Browse controls
-                <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
+                <ArrowRight
+                  className="size-4 transition-transform group-hover:translate-x-1"
+                  aria-hidden
+                />
               </span>
             </Link>
           ))}

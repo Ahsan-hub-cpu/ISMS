@@ -2,7 +2,7 @@ import { ScrollText } from "lucide-react";
 import type { Metadata } from "next";
 
 import { Badge } from "@/components/ui/badge";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { Card, CardBody, CardHeader, CardToolbar } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { PageHeader } from "@/components/ui/page-header";
@@ -41,14 +41,15 @@ export default async function AuditLogPage({
   return (
     <>
       <PageHeader
+        eyebrow="Administration"
         title="Audit log"
         description="Who changed what, and when. Entries are written automatically and cannot be edited."
       />
 
       <Card>
-        <CardHeader title="History" description="Most recent first." />
+        <CardHeader icon={ScrollText} title="History" description="Most recent first." />
 
-        <CardBody className="space-y-4">
+        <CardToolbar>
           <FilterBar
             filters={[
               {
@@ -59,7 +60,9 @@ export default async function AuditLogPage({
               },
             ]}
           />
+        </CardToolbar>
 
+        <CardBody className="p-0">
           {!entries || entries.items.length === 0 ? (
             <EmptyState
               icon={ScrollText}
@@ -100,12 +103,14 @@ export default async function AuditLogPage({
           )}
 
           {entries ? (
-            <Pagination
-              page={entries.page}
-              totalPages={entries.totalPages}
-              total={entries.total}
-              buildHref={(page) => hrefWith({ page: String(page) })}
-            />
+            <div className="px-5 pb-4">
+              <Pagination
+                page={entries.page}
+                totalPages={entries.totalPages}
+                total={entries.total}
+                buildHref={(page) => hrefWith({ page: String(page) })}
+              />
+            </div>
           ) : null}
         </CardBody>
       </Card>

@@ -4,6 +4,7 @@ import { Loader2, Paperclip, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
 
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/input";
 import { EVIDENCE_KIND_LABELS, EVIDENCE_KINDS } from "@/modules/evidence/domain/entities";
@@ -90,9 +91,7 @@ export const EvidenceUploader = ({ target, compact = false }: EvidenceUploaderPr
   return (
     <form onSubmit={handleSubmit} className="space-y-3 border-t pt-3" noValidate>
       {failure ? (
-        <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-rose-950 dark:text-rose-300">
-          {failure.message}
-        </p>
+        <Alert>{failure.message}</Alert>
       ) : null}
 
       <Field label="Title" htmlFor="evidenceTitle" error={errorFor("title")}>
@@ -129,7 +128,7 @@ export const EvidenceUploader = ({ target, compact = false }: EvidenceUploaderPr
             id="evidenceFile"
             type="file"
             ref={fileRef}
-            className="h-auto py-2 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-xs file:font-medium dark:file:bg-slate-800"
+            className="h-auto py-2 file:mr-3 file:rounded-md file:border-0 file:bg-brand-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-brand-800 dark:file:bg-brand-950/70 dark:file:text-brand-200"
           />
         </Field>
       ) : (

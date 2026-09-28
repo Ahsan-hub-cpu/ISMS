@@ -1,11 +1,13 @@
 "use client";
 
-import { Loader2, Pencil, X } from "lucide-react";
+import { Loader2, Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/input";
+import { Modal } from "@/components/ui/modal";
 import {
   APPLICABILITIES,
   APPLICABILITY_LABELS,
@@ -45,6 +47,20 @@ export const RegisterRowEditor = ({ entry, owners, sites }: RegisterRowEditorPro
     reviewDueAt: toDateInput(entry.reviewDueAt),
   });
 
+  const open = () => {
+    setFailure(null);
+    setForm({
+      ownerId: entry.ownerId ?? "",
+      siteId: entry.siteId ?? "",
+      applicability: entry.applicability,
+      justification: entry.justification ?? "",
+      implementationStatus: entry.implementationStatus,
+      implementationNotes: entry.implementationNotes ?? "",
+      reviewDueAt: toDateInput(entry.reviewDueAt),
+    });
+    setIsOpen(true);
+  };
+
   const errorFor = (field: string) =>
     failure?.issues.find((issue) => issue.field === field)?.message;
 
@@ -77,35 +93,34 @@ export const RegisterRowEditor = ({ entry, owners, sites }: RegisterRowEditorPro
     router.refresh();
   };
 
-  if (!isOpen) {
-    return (
-      <Button variant="ghost" size="sm" onClick={() => setIsOpen(true)}>
+  return (
+    <>
+      <Button variant="secondary" size="sm" onClick={open}>
         <Pencil className="size-3.5" aria-hidden />
         Edit
       </Button>
-    );
-  }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4 backdrop-blur-sm">
-      <div className="surface-card my-8 w-full max-w-xl">
-        <header className="flex items-start justify-between gap-4 border-b px-5 py-4">
-          <div>
-            <h2 className="text-sm font-semibold">
-              {entry.controlCode} {entry.controlTitle}
-            </h2>
-            <p className="text-sm text-content-muted">{entry.themeName}</p>
-          </div>
-          <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)} aria-label="Close">
-            <X className="size-4" aria-hidden />
-          </Button>
-        </header>
-
-        <form onSubmit={handleSubmit} className="space-y-4 px-5 py-4" noValidate>
+      <Modal
+        open={isOpen}
+        onClose={() => setIsOpen(false)}
+        title={`${entry.controlCode} · ${entry.controlTitle}`}
+        description={entry.themeName}
+        size="lg"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setIsOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" form={`register-edit-${entry.id}`} disabled={isSaving}>
+              {isSaving ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
+              Save changes
+            </Button>
+          </>
+        }
+      >
+        <form id={`register-edit-${entry.id}`} onSubmit={handleSubmit} className="space-y-4" noValidate>
           {failure ? (
-            <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-rose-950 dark:text-rose-300">
-              {failure.message}
-            </p>
+            <Alert>{failure.message}</Alert>
           ) : null}
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -124,7 +139,7 @@ export const RegisterRowEditor = ({ entry, owners, sites }: RegisterRowEditorPro
               </Select>
             </Field>
 
-            <Field label="Site" htmlFor={`site-${entry.id}`} hint="Leave empty for district-wide">
+            <Field label="Site" htmlFor={`site-${entry.id}`} hint="Leave empty for organisation-wide">
               <Select
                 id={`site-${entry.id}`}
                 value={form.siteId}
@@ -199,22 +214,14 @@ export const RegisterRowEditor = ({ entry, owners, sites }: RegisterRowEditorPro
           >
             <Textarea
               id={`notes-${entry.id}`}
+              rows={5}
               value={form.implementationNotes}
               onChange={(event) => update("implementationNotes")(event.target.value)}
+              placeholder="e.g. Roles are listed in the HR handbook; quarterly access reviews are not yet running."
             />
           </Field>
-
-          <div className="flex justify-end gap-2 border-t pt-4">
-            <Button variant="secondary" onClick={() => setIsOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSaving}>
-              {isSaving ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
-              Save changes
-            </Button>
-          </div>
         </form>
-      </div>
-    </div>
+      </Modal>
+    </>
   );
 };

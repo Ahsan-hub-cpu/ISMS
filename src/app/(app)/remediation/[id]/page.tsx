@@ -1,4 +1,12 @@
-import { Download, ExternalLink } from "lucide-react";
+import {
+  Download,
+  ExternalLink,
+  FolderLock,
+  Info,
+  MessageSquare,
+  PencilLine,
+  Target,
+} from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -56,8 +64,11 @@ export default async function RemediationDetailPage({
   return (
     <>
       <PageHeader
+        eyebrow={`Action ${action.reference}`}
         title={action.title}
-        description={`${action.reference}${action.controlCode ? ` · ${action.controlCode} ${action.controlTitle}` : ""}`}
+        description={
+          action.controlCode ? `${action.controlCode} ${action.controlTitle}` : undefined
+        }
         actions={
           <div className="flex items-center gap-2">
             <PriorityBadge priority={action.priority} />
@@ -69,9 +80,11 @@ export default async function RemediationDetailPage({
       <div className="grid gap-4 lg:grid-cols-[1fr_22rem]">
         <div className="space-y-4">
           <Card>
-            <CardHeader title="What needs to happen" />
-            <CardBody className="space-y-4">
-              <p className="whitespace-pre-line text-sm leading-relaxed">{action.description}</p>
+            <CardHeader icon={Target} title="What needs to happen" />
+            <CardBody className="space-y-5">
+              <p className="whitespace-pre-line text-sm leading-relaxed text-content">
+                {action.description}
+              </p>
               <Progress value={action.progressPercent} label="Progress" />
             </CardBody>
           </Card>
@@ -79,6 +92,7 @@ export default async function RemediationDetailPage({
           {canUpdate ? (
             <Card>
               <CardHeader
+                icon={PencilLine}
                 title="Update this action"
                 description={
                   canPlan
@@ -93,16 +107,23 @@ export default async function RemediationDetailPage({
           ) : null}
 
           <Card>
-            <CardHeader title="Updates" description="A running record of how the work progressed." />
+            <CardHeader
+              icon={MessageSquare}
+              title="Updates"
+              description="A running record of how the work progressed."
+            />
             <CardBody className="space-y-4">
               {action.comments.length === 0 ? (
                 <p className="text-sm text-content-muted">No updates recorded yet.</p>
               ) : (
                 <ul className="space-y-3">
                   {action.comments.map((comment) => (
-                    <li key={comment.id} className="rounded-lg border px-4 py-3">
-                      <p className="text-sm">{comment.body}</p>
-                      <p className="mt-1 text-xs text-content-muted">
+                    <li
+                      key={comment.id}
+                      className="rounded-xl border border-surface-border bg-surface-sunken/40 px-4 py-3.5"
+                    >
+                      <p className="text-sm leading-relaxed text-content">{comment.body}</p>
+                      <p className="mt-1.5 text-xs text-content-subtle">
                         {comment.authorName} · {formatDateTime(comment.createdAt)}
                       </p>
                     </li>
@@ -117,7 +138,7 @@ export default async function RemediationDetailPage({
 
         <div className="space-y-4">
           <Card>
-            <CardHeader title="Details" />
+            <CardHeader icon={Info} title="Details" />
             <CardBody>
               <dl className="space-y-3 text-sm">
                 <div className="flex justify-between gap-3">
@@ -163,6 +184,7 @@ export default async function RemediationDetailPage({
 
           <Card>
             <CardHeader
+              icon={FolderLock}
               title="Evidence"
               description="Attach what proves the work was done before closing the action."
             />

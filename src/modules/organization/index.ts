@@ -1,5 +1,7 @@
+import { auditService } from "@/modules/audit";
 import { NotFoundError } from "@/shared/core/errors";
 
+import { createSite } from "./application/use-cases/create-site";
 import { getOrganizationProfile } from "./application/use-cases/get-organization-profile";
 import { prismaOrganizationRepository } from "./infrastructure/prisma-organization-repository";
 
@@ -23,6 +25,11 @@ export const organizationService = {
   },
 
   listSites: (organizationId: string) => prismaOrganizationRepository.listSites(organizationId),
+
+  createSite: createSite({
+    organization: prismaOrganizationRepository,
+    audit: auditService.record,
+  }),
 };
 
 export type { Organization, OrganizationProfile, Site } from "./domain/entities";

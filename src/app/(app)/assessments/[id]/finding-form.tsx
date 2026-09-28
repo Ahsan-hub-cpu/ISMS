@@ -1,12 +1,14 @@
 "use client";
 
-import { ChevronDown, Loader2, ShieldAlert } from "lucide-react";
+import { Loader2, Pencil, ShieldAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
 import { ComplianceBadge } from "@/components/domain/status-badge";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, Select, Textarea } from "@/components/ui/input";
+import { Modal } from "@/components/ui/modal";
 import {
   COMPLIANCE_STATUS_LABELS,
   type AssessmentItem,
@@ -48,6 +50,16 @@ export const FindingForm = ({ item, readOnly }: FindingFormProps) => {
     rationale: item.rationale ?? "",
   });
 
+  const open = () => {
+    setFailure(null);
+    setForm({
+      status: item.status === "NOT_ASSESSED" ? "COMPLIANT" : item.status,
+      currentPractice: item.currentPractice ?? "",
+      rationale: item.rationale ?? "",
+    });
+    setIsOpen(true);
+  };
+
   const errorFor = (field: string) =>
     failure?.issues.find((issue) => issue.field === field)?.message;
 
@@ -74,135 +86,145 @@ export const FindingForm = ({ item, readOnly }: FindingFormProps) => {
   };
 
   return (
-    <div className="rounded-lg border">
-      <button
-        type="button"
-        onClick={() => setIsOpen((open) => !open)}
-        className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40"
-        aria-expanded={isOpen}
-      >
-        <span className="mt-0.5 shrink-0 rounded-md bg-slate-100 px-2 py-1 font-mono text-xs font-medium dark:bg-slate-800">
+    <>
+      <div className="flex items-start gap-3 rounded-xl border border-surface-border bg-surface-raised px-4 py-3.5 transition-colors hover:border-brand-200 dark:hover:border-brand-800">
+        <span className="mt-0.5 shrink-0 rounded-lg bg-brand-50 px-2.5 py-1 font-mono text-xs font-semibold text-brand-800 ring-1 ring-inset ring-brand-100 dark:bg-brand-950/60 dark:text-brand-200 dark:ring-brand-900">
           {item.controlCode}
         </span>
 
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-medium">{item.controlTitle}</span>
-          <span className="mt-0.5 block text-xs text-content-muted">{item.themeName}</span>
+          <span className="block text-sm font-semibold text-content">{item.controlTitle}</span>
+          <span className="mt-0.5 block text-xs text-content-subtle">{item.themeName}</span>
         </span>
 
-        <span className="flex shrink-0 items-center gap-2">
+        <span className="flex shrink-0 flex-wrap items-center justify-end gap-2">
           {item.gapReference ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700 dark:bg-rose-950 dark:text-rose-300">
+            <span className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2 py-[3px] text-[0.6875rem] font-semibold text-rose-700 dark:border-rose-900 dark:bg-rose-950/60 dark:text-rose-300">
               <ShieldAlert className="size-3" aria-hidden />
               {item.gapReference}
             </span>
           ) : null}
           <ComplianceBadge status={item.status} />
-          <ChevronDown
-            className={`size-4 text-content-muted transition-transform ${isOpen ? "rotate-180" : ""}`}
-            aria-hidden
-          />
+          <Button variant="secondary" size="sm" onClick={open}>
+            <Pencil className="size-3.5" aria-hidden />
+            {readOnly ? "View" : "Record"}
+          </Button>
         </span>
-      </button>
+      </div>
 
-      {isOpen ? (
-        <div className="border-t px-4 py-4">
-          <p className="mb-4 text-sm text-content-muted">{item.controlPurpose}</p>
-
-          {readOnly ? (
-            <dl className="space-y-2 text-sm">
-              <div>
-                <dt className="text-xs font-medium uppercase tracking-wide text-content-muted">
-                  Current practice
-                </dt>
-                <dd>{item.currentPractice ?? "Not recorded"}</dd>
-              </div>
-              {item.rationale ? (
-                <div>
-                  <dt className="text-xs font-medium uppercase tracking-wide text-content-muted">
-                    Rationale
-                  </dt>
-                  <dd>{item.rationale}</dd>
-                </div>
-              ) : null}
-            </dl>
+      <Modal
+        open={isOpen}
+        onClose={() => setIsOpen(false)}
+        title={`${item.controlCode} · ${item.controlTitle}`}
+        description={item.controlPurpose}
+        size="lg"
+        footer={
+          readOnly ? (
+            <Button variant="secondary" onClick={() => setIsOpen(false)}>
+              Close
+            </Button>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-              {failure ? (
-                <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-rose-950 dark:text-rose-300">
-                  {failure.message}
-                </p>
-              ) : null}
-
-              <Field label="Finding" htmlFor={`status-${item.id}`} error={errorFor("status")}>
-                <Select
-                  id={`status-${item.id}`}
-                  value={form.status}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      status: event.target.value as AssessableStatus,
-                    }))
-                  }
-                >
-                  {SELECTABLE.map((status) => (
-                    <option key={status} value={status}>
-                      {COMPLIANCE_STATUS_LABELS[status]}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-
-              <Field
-                label="Current practice"
-                htmlFor={`practice-${item.id}`}
-                hint="What is actually happening today. This becomes the body of the gap record."
-                error={errorFor("currentPractice")}
-              >
-                <Textarea
-                  id={`practice-${item.id}`}
-                  value={form.currentPractice}
-                  onChange={(event) =>
-                    setForm((current) => ({ ...current, currentPractice: event.target.value }))
-                  }
-                />
-              </Field>
-
-              <Field
-                label="Rationale"
-                htmlFor={`rationale-${item.id}`}
-                hint="Optional note on how you reached this conclusion."
-              >
-                <Textarea
-                  id={`rationale-${item.id}`}
-                  rows={2}
-                  value={form.rationale}
-                  onChange={(event) =>
-                    setForm((current) => ({ ...current, rationale: event.target.value }))
-                  }
-                />
-              </Field>
-
-              {RAISES_GAP.includes(form.status) ? (
-                <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-950 dark:text-amber-300">
-                  Saving this finding raises a gap, scores its risk from the control attributes and
-                  schedules a remediation action.
-                </p>
-              ) : null}
-
-              <div className="flex justify-end gap-2">
-                <Button variant="secondary" size="sm" onClick={() => setIsOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" size="sm" disabled={isSaving}>
-                  {isSaving ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
-                  Save finding
-                </Button>
+            <>
+              <Button variant="secondary" onClick={() => setIsOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" form={`finding-${item.id}`} disabled={isSaving}>
+                {isSaving ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
+                Save finding
+              </Button>
+            </>
+          )
+        }
+      >
+        {readOnly ? (
+          <dl className="space-y-3 text-sm">
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-content-muted">
+                Finding
+              </dt>
+              <dd className="mt-1">
+                <ComplianceBadge status={item.status} />
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-content-muted">
+                Current practice
+              </dt>
+              <dd className="mt-1 whitespace-pre-line">{item.currentPractice ?? "Not recorded"}</dd>
+            </div>
+            {item.rationale ? (
+              <div>
+                <dt className="text-xs font-semibold uppercase tracking-wide text-content-muted">
+                  Rationale
+                </dt>
+                <dd className="mt-1 whitespace-pre-line">{item.rationale}</dd>
               </div>
-            </form>
-          )}
-        </div>
-      ) : null}
-    </div>
+            ) : null}
+          </dl>
+        ) : (
+          <form id={`finding-${item.id}`} onSubmit={handleSubmit} className="space-y-4" noValidate>
+            {failure ? (
+              <Alert>{failure.message}</Alert>
+            ) : null}
+
+            <Field label="Finding" htmlFor={`status-${item.id}`} error={errorFor("status")}>
+              <Select
+                id={`status-${item.id}`}
+                value={form.status}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    status: event.target.value as AssessableStatus,
+                  }))
+                }
+              >
+                {SELECTABLE.map((status) => (
+                  <option key={status} value={status}>
+                    {COMPLIANCE_STATUS_LABELS[status]}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+
+            <Field
+              label="Current practice"
+              htmlFor={`practice-${item.id}`}
+              hint="What is actually happening today. This becomes the body of the gap record."
+              error={errorFor("currentPractice")}
+            >
+              <Textarea
+                id={`practice-${item.id}`}
+                value={form.currentPractice}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, currentPractice: event.target.value }))
+                }
+              />
+            </Field>
+
+            <Field
+              label="Rationale"
+              htmlFor={`rationale-${item.id}`}
+              hint="Optional note on how you reached this conclusion."
+            >
+              <Textarea
+                id={`rationale-${item.id}`}
+                rows={2}
+                value={form.rationale}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, rationale: event.target.value }))
+                }
+              />
+            </Field>
+
+            {RAISES_GAP.includes(form.status) ? (
+              <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                Saving this finding raises a gap, scores its risk from the control attributes and
+                schedules a remediation action.
+              </p>
+            ) : null}
+          </form>
+        )}
+      </Modal>
+    </>
   );
 };

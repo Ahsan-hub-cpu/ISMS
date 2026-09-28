@@ -1,10 +1,10 @@
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Library } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { Card, CardBody, CardHeader, CardToolbar } from "@/components/ui/card";
 import { Pagination } from "@/components/ui/pagination";
 import { PageHeader } from "@/components/ui/page-header";
 import { requirePermission } from "@/modules/auth/presentation/guards";
@@ -17,6 +17,13 @@ import { ControlFilters } from "./control-filters";
 export const metadata: Metadata = { title: "Control catalogue" };
 
 type SearchParams = Record<string, string | string[] | undefined>;
+
+const pillClass =
+  "inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-[0.8125rem] transition-colors";
+const pillActiveClass =
+  "border-brand-300 bg-brand-50 font-semibold text-brand-800 shadow-[0_1px_2px_oklch(0.35_0.04_220/0.06)] dark:border-brand-800 dark:bg-brand-950/70 dark:text-brand-200";
+const pillIdleClass =
+  "border-surface-border bg-surface-raised text-content-muted hover:border-brand-200 hover:bg-brand-50/60 hover:text-brand-800 dark:hover:bg-brand-950/40 dark:hover:text-brand-200";
 
 const toQueryString = (params: SearchParams, overrides: Record<string, string | undefined>) => {
   const search = new URLSearchParams();
@@ -69,6 +76,7 @@ export default async function FrameworkCataloguePage({
   return (
     <>
       <PageHeader
+        eyebrow="Control catalogue"
         title={framework.name}
         description={`${controlCount} controls in ${themes.length} themes · published by ${framework.publisher}`}
         actions={<Badge tone="brand">Version {framework.version}</Badge>}
@@ -78,14 +86,14 @@ export default async function FrameworkCataloguePage({
         <Link
           href={hrefWith({ themeCode: undefined })}
           className={cn(
-            "rounded-full border px-3 py-1.5 text-sm transition-colors",
-            query.themeCode
-              ? "text-content-muted hover:bg-slate-100 dark:hover:bg-slate-800/60"
-              : "border-brand-200 bg-brand-50 font-medium text-brand-700 dark:border-brand-900 dark:bg-brand-950 dark:text-brand-200",
+            pillClass,
+            query.themeCode ? pillIdleClass : pillActiveClass,
           )}
         >
           All themes
-          <span className="ml-2 text-xs text-content-muted">{controlCount}</span>
+          <span className={query.themeCode ? "text-content-subtle" : "text-brand-600"}>
+            {controlCount}
+          </span>
         </Link>
 
         {themes.map((theme) => {
@@ -96,15 +104,12 @@ export default async function FrameworkCataloguePage({
               key={theme.id}
               href={hrefWith({ themeCode: theme.code })}
               title={theme.description}
-              className={cn(
-                "rounded-full border px-3 py-1.5 text-sm transition-colors",
-                isActive
-                  ? "border-brand-200 bg-brand-50 font-medium text-brand-700 dark:border-brand-900 dark:bg-brand-950 dark:text-brand-200"
-                  : "text-content-muted hover:bg-slate-100 dark:hover:bg-slate-800/60",
-              )}
+              className={cn(pillClass, isActive ? pillActiveClass : pillIdleClass)}
             >
               {theme.code} {theme.name}
-              <span className="ml-2 text-xs text-content-muted">{theme.controlCount}</span>
+              <span className={isActive ? "text-brand-600" : "text-content-subtle"}>
+                {theme.controlCount}
+              </span>
             </Link>
           );
         })}
@@ -112,36 +117,41 @@ export default async function FrameworkCataloguePage({
 
       <Card>
         <CardHeader
+          icon={Library}
           title="Controls"
           description="Each entry is a requirement the organisation will be assessed against."
         />
 
-        <CardBody className="space-y-4">
+        <CardToolbar>
           <ControlFilters />
+        </CardToolbar>
 
+        <CardBody className="p-0">
           {controls.items.length === 0 ? (
-            <p className="py-8 text-center text-sm text-content-muted">
+            <p className="py-12 text-center text-sm text-content-muted">
               No control matches the current filters.
             </p>
           ) : (
-            <ul className="divide-y">
+            <ul className="divide-y divide-surface-border">
               {controls.items.map((control) => (
                 <li key={control.id}>
                   <Link
                     href={`${basePath}/controls/${control.code}`}
-                    className="group flex items-start gap-4 rounded-lg px-2 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40"
+                    className="group flex items-start gap-4 px-5 py-4 transition-colors hover:bg-brand-50/50 dark:hover:bg-brand-950/25"
                   >
-                    <span className="mt-0.5 shrink-0 rounded-md bg-slate-100 px-2 py-1 font-mono text-xs font-medium dark:bg-slate-800">
+                    <span className="mt-0.5 shrink-0 rounded-md bg-brand-50 px-2 py-1 font-mono text-xs font-semibold text-brand-800 ring-1 ring-inset ring-brand-100 dark:bg-brand-950/60 dark:text-brand-200 dark:ring-brand-900">
                       {control.code}
                     </span>
 
                     <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-medium">{control.title}</span>
-                      <span className="mt-0.5 block text-sm text-content-muted">
+                      <span className="block text-sm font-semibold text-content">
+                        {control.title}
+                      </span>
+                      <span className="mt-1 block text-[0.8125rem] leading-relaxed text-content-muted">
                         {control.purpose}
                       </span>
 
-                      <span className="mt-2 flex flex-wrap gap-1.5">
+                      <span className="mt-2.5 flex flex-wrap gap-1.5">
                         {control.controlTypes.map((type) => (
                           <Badge key={type} tone="brand">
                             {type}
@@ -154,7 +164,7 @@ export default async function FrameworkCataloguePage({
                     </span>
 
                     <ChevronRight
-                      className="mt-1 size-4 shrink-0 text-content-muted transition-transform group-hover:translate-x-0.5"
+                      className="mt-1 size-4 shrink-0 text-content-subtle transition-transform group-hover:translate-x-1 group-hover:text-brand-600"
                       aria-hidden
                     />
                   </Link>
@@ -163,12 +173,14 @@ export default async function FrameworkCataloguePage({
             </ul>
           )}
 
-          <Pagination
-            page={controls.page}
-            totalPages={controls.totalPages}
-            total={controls.total}
-            buildHref={(page) => hrefWith({ page: String(page) })}
-          />
+          <div className="px-5 pb-4 pt-1">
+            <Pagination
+              page={controls.page}
+              totalPages={controls.totalPages}
+              total={controls.total}
+              buildHref={(page) => hrefWith({ page: String(page) })}
+            />
+          </div>
         </CardBody>
       </Card>
     </>

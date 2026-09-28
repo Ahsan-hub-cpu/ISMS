@@ -1,3 +1,4 @@
+import { ShieldCheck, Users } from "lucide-react";
 import type { Metadata } from "next";
 
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -43,46 +44,48 @@ export default async function UsersPage() {
   return (
     <>
       <PageHeader
+        eyebrow="Administration"
         title="Users & Roles"
         description="Accounts that may access the ISMS platform and the permissions attached to each role."
+        actions={canManage ? <CreateUserForm sites={sites} /> : null}
       />
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader
-            title="Accounts"
-            description={`${users.length} account${users.length === 1 ? "" : "s"} registered.`}
-          />
-          <CardBody>
-            <UserTable
-              users={users}
-              sites={sites}
-              canManage={canManage}
-              currentUserId={session.id}
-            />
-          </CardBody>
-        </Card>
-
-        {canManage ? (
-          <Card>
-            <CardHeader title="Add an account" description="The user signs in with this password." />
-            <CardBody>
-              <CreateUserForm sites={sites} />
-            </CardBody>
-          </Card>
-        ) : null}
-      </div>
 
       <Card>
         <CardHeader
+          icon={Users}
+          title="Accounts"
+          description={`${users.length} account${users.length === 1 ? "" : "s"} registered.`}
+        />
+        <CardBody className="p-0">
+          <UserTable
+            users={users}
+            sites={sites}
+            canManage={canManage}
+            currentUserId={session.id}
+          />
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader
+          icon={ShieldCheck}
           title="Role definitions"
           description="Permissions are derived from the role, so screens and endpoints check permissions rather than roles."
         />
-        <CardBody className="grid gap-4 sm:grid-cols-2">
+        <CardBody className="grid gap-3 sm:grid-cols-2">
           {USER_ROLES.map((role) => (
-            <div key={role} className="rounded-lg border px-4 py-3">
-              <p className="text-sm font-medium">{ROLE_LABELS[role]}</p>
-              <p className="mt-1 text-xs text-content-muted">{ROLE_DESCRIPTIONS[role]}</p>
+            <div
+              key={role}
+              className="relative overflow-hidden rounded-xl border border-surface-border bg-surface-sunken/50 px-4 py-3.5"
+            >
+              <span
+                aria-hidden
+                className="absolute inset-y-3 left-0 w-[3px] rounded-r-full bg-brand-400"
+              />
+              <p className="pl-2 text-sm font-semibold text-content">{ROLE_LABELS[role]}</p>
+              <p className="mt-1 pl-2 text-xs leading-relaxed text-content-muted">
+                {ROLE_DESCRIPTIONS[role]}
+              </p>
             </div>
           ))}
         </CardBody>

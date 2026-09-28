@@ -1,9 +1,16 @@
-import { Download, ExternalLink, FolderLock } from "lucide-react";
+import {
+  CalendarX,
+  CheckCircle2,
+  Clock,
+  Download,
+  ExternalLink,
+  FolderLock,
+} from "lucide-react";
 import type { Metadata } from "next";
 
 import { EvidenceReviewBadge } from "@/components/domain/status-badge";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { Card, CardBody, CardHeader, CardToolbar } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { PageHeader } from "@/components/ui/page-header";
@@ -54,22 +61,27 @@ export default async function EvidencePage({
   return (
     <>
       <PageHeader
+        eyebrow="Operations"
         title="Evidence"
         description="Documents and links that prove a control works or that a remediation action was completed."
       />
 
       {summary ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Stat label="Total items" value={summary.total} />
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <Stat icon={FolderLock} label="Total items" value={summary.total} tone="brand" />
           <Stat
+            icon={Clock}
             label="Awaiting review"
             value={summary.pending}
+            hint={summary.pending > 0 ? "An assessor must accept or reject" : "Nothing queued"}
             tone={summary.pending > 0 ? "warning" : "success"}
           />
-          <Stat label="Accepted" value={summary.accepted} tone="success" />
+          <Stat icon={CheckCircle2} label="Accepted" value={summary.accepted} tone="success" />
           <Stat
+            icon={CalendarX}
             label="Expired"
             value={summary.expired}
+            hint={summary.expired > 0 ? "Past its valid-until date" : "All items current"}
             tone={summary.expired > 0 ? "danger" : "success"}
           />
         </div>
@@ -77,11 +89,12 @@ export default async function EvidencePage({
 
       <Card>
         <CardHeader
+          icon={FolderLock}
           title="All evidence"
           description="Attach evidence from a control, gap or remediation action so it is always linked to something."
         />
 
-        <CardBody className="space-y-4">
+        <CardToolbar>
           <FilterBar
             searchPlaceholder="Search by title, note or file name…"
             filters={[
@@ -104,7 +117,9 @@ export default async function EvidencePage({
               },
             ]}
           />
+        </CardToolbar>
 
+        <CardBody className="p-0">
           {!evidence || evidence.items.length === 0 ? (
             <EmptyState
               icon={FolderLock}
@@ -200,12 +215,14 @@ export default async function EvidencePage({
           )}
 
           {evidence ? (
-            <Pagination
-              page={evidence.page}
-              totalPages={evidence.totalPages}
-              total={evidence.total}
-              buildHref={(page) => hrefWith({ page: String(page) })}
-            />
+            <div className="px-5 pb-4">
+              <Pagination
+                page={evidence.page}
+                totalPages={evidence.totalPages}
+                total={evidence.total}
+                buildHref={(page) => hrefWith({ page: String(page) })}
+              />
+            </div>
           ) : null}
         </CardBody>
       </Card>

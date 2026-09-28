@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select } from "@/components/ui/input";
 import {
@@ -67,9 +68,7 @@ export const ProgressForm = ({ action, owners, canPlan }: ProgressFormProps) => 
   return (
     <form onSubmit={handleSubmit} className="space-y-4" noValidate>
       {failure ? (
-        <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-rose-950 dark:text-rose-300">
-          {failure.message}
-        </p>
+        <Alert>{failure.message}</Alert>
       ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2">

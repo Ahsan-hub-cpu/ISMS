@@ -1,9 +1,9 @@
-import { ListChecks } from "lucide-react";
+import { CalendarClock, CheckCircle2, Layers, ListChecks, UserX } from "lucide-react";
 import type { Metadata } from "next";
 
 import { ImplementationBadge } from "@/components/domain/status-badge";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { Card, CardBody, CardHeader, CardToolbar } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { PageHeader } from "@/components/ui/page-header";
@@ -75,31 +75,39 @@ export default async function RegisterPage({
   return (
     <>
       <PageHeader
+        eyebrow="Statement of applicability"
         title="Control register"
         description="The organisation's own position on every control: who owns it, whether it applies and how far it is implemented."
       />
 
       {summary ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <Stat
+            icon={Layers}
             label="Controls in scope"
             value={summary.applicable}
             hint={`${summary.excluded} excluded with justification`}
+            tone="brand"
           />
           <Stat
+            icon={CheckCircle2}
             label="Implemented"
             value={summary.byStatus.IMPLEMENTED}
             hint={`${summary.byStatus.PARTIALLY_IMPLEMENTED} partially implemented`}
             tone="success"
           />
           <Stat
+            icon={UserX}
             label="Without an owner"
             value={summary.unassigned}
+            hint={summary.unassigned > 0 ? "Assign an owner to each control" : "Every control owned"}
             tone={summary.unassigned > 0 ? "warning" : "success"}
           />
           <Stat
+            icon={CalendarClock}
             label="Reviews overdue"
             value={summary.overdueReviews}
+            hint={summary.overdueReviews > 0 ? "Past the scheduled review date" : "All reviews current"}
             tone={summary.overdueReviews > 0 ? "danger" : "success"}
           />
         </div>
@@ -118,11 +126,12 @@ export default async function RegisterPage({
 
       <Card>
         <CardHeader
+          icon={ListChecks}
           title="Controls"
           description="Every control from the catalogue is listed here automatically. Assign an owner and record where implementation stands."
         />
 
-        <CardBody className="space-y-4">
+        <CardToolbar>
           <FilterBar
             searchPlaceholder="Search by control code or title…"
             filters={[
@@ -150,7 +159,9 @@ export default async function RegisterPage({
               },
             ]}
           />
+        </CardToolbar>
 
+        <CardBody className="p-0">
           {!entries || entries.items.length === 0 ? (
             <EmptyState
               icon={ListChecks}
@@ -216,12 +227,14 @@ export default async function RegisterPage({
           )}
 
           {entries ? (
-            <Pagination
-              page={entries.page}
-              totalPages={entries.totalPages}
-              total={entries.total}
-              buildHref={(page) => hrefWith({ page: String(page) })}
-            />
+            <div className="px-5 pb-4">
+              <Pagination
+                page={entries.page}
+                totalPages={entries.totalPages}
+                total={entries.total}
+                buildHref={(page) => hrefWith({ page: String(page) })}
+              />
+            </div>
           ) : null}
         </CardBody>
       </Card>

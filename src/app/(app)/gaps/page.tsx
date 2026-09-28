@@ -1,9 +1,9 @@
-import { ShieldCheck } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Flame, ShieldAlert, ShieldCheck } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
 import { GapStatusBadge, RiskBadge } from "@/components/domain/status-badge";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { Card, CardBody, CardHeader, CardToolbar } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { PageHeader } from "@/components/ui/page-header";
@@ -41,30 +41,36 @@ export default async function GapsPage({
   return (
     <>
       <PageHeader
+        eyebrow="Gap analysis"
         title="Gaps"
         description="Gaps are raised by the assessment itself. When a control is found short, the difference is recorded here and scored by this project's own risk model, which ISO/IEC 27001 leaves each organisation to define."
       />
 
       {summary ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <Stat
+            icon={Flame}
             label="Critical"
             value={summary.byRisk.CRITICAL}
             tone={summary.byRisk.CRITICAL > 0 ? "danger" : "success"}
             hint="Outstanding"
           />
           <Stat
+            icon={AlertTriangle}
             label="High"
             value={summary.byRisk.HIGH}
             tone={summary.byRisk.HIGH > 0 ? "warning" : "success"}
             hint="Outstanding"
           />
           <Stat
+            icon={ShieldAlert}
             label="Outstanding in total"
             value={summary.open}
             hint={`${summary.awaitingReview} awaiting assessor verification`}
+            tone="brand"
           />
           <Stat
+            icon={CheckCircle2}
             label="Closed"
             value={summary.resolved + summary.accepted}
             hint={`${summary.accepted} accepted as residual risk`}
@@ -75,11 +81,12 @@ export default async function GapsPage({
 
       <Card>
         <CardHeader
+          icon={ShieldAlert}
           title="Gap register"
           description="Highest risk first. Open a gap to see how its rating was derived."
         />
 
-        <CardBody className="space-y-4">
+        <CardToolbar>
           <FilterBar
             searchPlaceholder="Search by reference, control or summary…"
             filters={[
@@ -99,7 +106,9 @@ export default async function GapsPage({
               },
             ]}
           />
+        </CardToolbar>
 
+        <CardBody className="p-0">
           {!gaps || gaps.items.length === 0 ? (
             <EmptyState
               icon={ShieldCheck}
@@ -155,12 +164,14 @@ export default async function GapsPage({
           )}
 
           {gaps ? (
-            <Pagination
-              page={gaps.page}
-              totalPages={gaps.totalPages}
-              total={gaps.total}
-              buildHref={(page) => hrefWith({ page: String(page) })}
-            />
+            <div className="px-5 pb-4">
+              <Pagination
+                page={gaps.page}
+                totalPages={gaps.totalPages}
+                total={gaps.total}
+                buildHref={(page) => hrefWith({ page: String(page) })}
+              />
+            </div>
           ) : null}
         </CardBody>
       </Card>

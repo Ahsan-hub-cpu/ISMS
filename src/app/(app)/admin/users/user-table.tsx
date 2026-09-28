@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/input";
+import { Table, TD, TH, THead, TR } from "@/components/ui/table";
 import { ROLE_LABELS, USER_ROLES, type UserRole } from "@/modules/auth/domain/user";
 import type { ApiResponse } from "@/shared/api/http";
 
@@ -54,89 +55,90 @@ export const UserTable = ({ users, sites, canManage, currentUserId }: UserTableP
     sites.find((site) => site.id === siteId)?.name ?? "All sites";
 
   return (
-    <div className="space-y-3">
+    <div>
       {error ? (
-        <p role="alert" className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-rose-950/60 dark:text-rose-300">
+        <p
+          role="alert"
+          className="mx-5 mt-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2.5 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950/60 dark:text-rose-300"
+        >
           {error}
         </p>
       ) : null}
 
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[720px] border-collapse text-sm">
-          <thead>
-            <tr className="border-b text-left text-xs uppercase tracking-wide text-content-muted">
-              <th className="px-3 py-2 font-medium">User</th>
-              <th className="px-3 py-2 font-medium">Role</th>
-              <th className="px-3 py-2 font-medium">Site</th>
-              <th className="px-3 py-2 font-medium">Last sign-in</th>
-              <th className="px-3 py-2 font-medium">Status</th>
-            </tr>
-          </thead>
+      <Table className="min-w-[720px]">
+        <THead>
+          <TR>
+            <TH>User</TH>
+            <TH>Role</TH>
+            <TH>Site</TH>
+            <TH>Last sign-in</TH>
+            <TH>Status</TH>
+          </TR>
+        </THead>
 
-          <tbody>
-            {users.map((user) => {
-              const isPending = pendingId === user.id;
+        <tbody>
+          {users.map((user) => {
+            const isPending = pendingId === user.id;
 
-              return (
-                <tr key={user.id} className="border-b last:border-0">
-                  <td className="px-3 py-3">
-                    <span className="block font-medium">{user.fullName}</span>
-                    <span className="block text-xs text-content-muted">{user.email}</span>
-                    {user.jobTitle ? (
-                      <span className="block text-xs text-content-muted">{user.jobTitle}</span>
-                    ) : null}
-                  </td>
+            return (
+              <TR key={user.id}>
+                <TD>
+                  <span className="block text-sm font-semibold text-content">{user.fullName}</span>
+                  <span className="block text-xs text-content-muted">{user.email}</span>
+                  {user.jobTitle ? (
+                    <span className="block text-xs text-content-subtle">{user.jobTitle}</span>
+                  ) : null}
+                </TD>
 
-                  <td className="px-3 py-3">
-                    {canManage ? (
-                      <Select
-                        aria-label={`Role for ${user.fullName}`}
-                        value={user.role}
+                <TD>
+                  {canManage ? (
+                    <Select
+                      aria-label={`Role for ${user.fullName}`}
+                      value={user.role}
+                      disabled={isPending}
+                      onChange={(event) =>
+                        applyChange(user.id, { role: event.target.value as UserRole })
+                      }
+                      className="h-9 w-56"
+                    >
+                      {USER_ROLES.map((role) => (
+                        <option key={role} value={role}>
+                          {ROLE_LABELS[role]}
+                        </option>
+                      ))}
+                    </Select>
+                  ) : (
+                    <span className="text-sm">{ROLE_LABELS[user.role]}</span>
+                  )}
+                </TD>
+
+                <TD className="text-sm text-content-muted">{siteName(user.siteId)}</TD>
+
+                <TD className="text-sm text-content-muted">{formatLastLogin(user.lastLoginAt)}</TD>
+
+                <TD>
+                  <div className="flex items-center gap-2">
+                    <Badge tone={user.isActive ? "success" : "neutral"} dot>
+                      {user.isActive ? "Active" : "Disabled"}
+                    </Badge>
+
+                    {canManage && user.id !== currentUserId ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         disabled={isPending}
-                        onChange={(event) =>
-                          applyChange(user.id, { role: event.target.value as UserRole })
-                        }
-                        className="h-9 w-56"
+                        onClick={() => applyChange(user.id, { isActive: !user.isActive })}
                       >
-                        {USER_ROLES.map((role) => (
-                          <option key={role} value={role}>
-                            {ROLE_LABELS[role]}
-                          </option>
-                        ))}
-                      </Select>
-                    ) : (
-                      ROLE_LABELS[user.role]
-                    )}
-                  </td>
-
-                  <td className="px-3 py-3 text-content-muted">{siteName(user.siteId)}</td>
-
-                  <td className="px-3 py-3 text-content-muted">{formatLastLogin(user.lastLoginAt)}</td>
-
-                  <td className="px-3 py-3">
-                    <div className="flex items-center gap-2">
-                      <Badge tone={user.isActive ? "success" : "neutral"}>
-                        {user.isActive ? "Active" : "Disabled"}
-                      </Badge>
-
-                      {canManage && user.id !== currentUserId ? (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          disabled={isPending}
-                          onClick={() => applyChange(user.id, { isActive: !user.isActive })}
-                        >
-                          {user.isActive ? "Disable" : "Enable"}
-                        </Button>
-                      ) : null}
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+                        {user.isActive ? "Disable" : "Enable"}
+                      </Button>
+                    ) : null}
+                  </div>
+                </TD>
+              </TR>
+            );
+          })}
+        </tbody>
+      </Table>
     </div>
   );
 };

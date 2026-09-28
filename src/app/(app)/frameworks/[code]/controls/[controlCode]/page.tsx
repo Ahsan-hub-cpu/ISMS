@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, ChevronLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, ChevronLeft, Tags } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -46,30 +46,41 @@ export default async function ControlDetailPage({ params }: PageProps) {
         {control.theme.code} {control.theme.name}
       </Link>
 
-      <div className="space-y-2">
+      <div className="relative space-y-2.5 pb-6">
+        <span
+          aria-hidden
+          className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-brand-300/70 via-surface-border to-transparent"
+        />
         <div className="flex flex-wrap items-center gap-3">
-          <span className="rounded-md bg-brand-600 px-2.5 py-1 font-mono text-sm font-medium text-white">
+          <span className="rounded-lg bg-brand-600 px-2.5 py-1 font-mono text-sm font-semibold text-white shadow-[0_1px_2px_oklch(0.35_0.04_220/0.2),inset_0_1px_0_oklch(1_0_0/0.18)]">
             {control.code}
           </span>
           <Badge>{framework.name}</Badge>
         </div>
-        <h1 className="text-2xl font-semibold tracking-tight">{control.title}</h1>
-        <p className="text-sm text-content-muted">{control.purpose}</p>
+        <h1 className="font-display text-[1.75rem] font-semibold leading-tight tracking-[-0.022em]">
+          {control.title}
+        </h1>
+        <p className="max-w-2xl text-sm leading-relaxed text-content-muted">{control.purpose}</p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader
+            icon={BookOpen}
             title="What the framework expects"
             description="Summarised for this project; the published standard remains authoritative."
           />
           <CardBody>
-            <p className="text-sm leading-relaxed">{control.description}</p>
+            <p className="text-sm leading-relaxed text-content">{control.description}</p>
           </CardBody>
         </Card>
 
         <Card>
-          <CardHeader title="Attributes" description="Used to filter and group the catalogue." />
+          <CardHeader
+            icon={Tags}
+            title="Attributes"
+            description="Used to filter and group the catalogue."
+          />
           <CardBody className="space-y-4">
             <AttributeGroup title="Control type">
               {control.controlTypes.map((type) => (
@@ -103,13 +114,20 @@ export default async function ControlDetailPage({ params }: PageProps) {
           {previous ? (
             <Link
               href={`${basePath}/controls/${previous.code}`}
-              className="group flex min-w-0 items-center gap-2 text-sm"
+              className="group flex min-w-0 items-center gap-2.5 text-sm"
               rel="prev"
             >
-              <ArrowLeft className="size-4 shrink-0 text-content-muted" aria-hidden />
+              <ArrowLeft
+                className="size-4 shrink-0 text-content-subtle transition-transform group-hover:-translate-x-1 group-hover:text-brand-600"
+                aria-hidden
+              />
               <span className="min-w-0">
-                <span className="block font-mono text-xs text-content-muted">{previous.code}</span>
-                <span className="block truncate">{previous.title}</span>
+                <span className="block font-mono text-[0.6875rem] uppercase tracking-wider text-content-subtle">
+                  {previous.code}
+                </span>
+                <span className="block truncate font-medium group-hover:text-brand-800 dark:group-hover:text-brand-200">
+                  {previous.title}
+                </span>
               </span>
             </Link>
           ) : (
@@ -119,14 +137,21 @@ export default async function ControlDetailPage({ params }: PageProps) {
           {next ? (
             <Link
               href={`${basePath}/controls/${next.code}`}
-              className="group flex min-w-0 items-center gap-2 text-right text-sm"
+              className="group flex min-w-0 items-center gap-2.5 text-right text-sm"
               rel="next"
             >
               <span className="min-w-0">
-                <span className="block font-mono text-xs text-content-muted">{next.code}</span>
-                <span className="block truncate">{next.title}</span>
+                <span className="block font-mono text-[0.6875rem] uppercase tracking-wider text-content-subtle">
+                  {next.code}
+                </span>
+                <span className="block truncate font-medium group-hover:text-brand-800 dark:group-hover:text-brand-200">
+                  {next.title}
+                </span>
               </span>
-              <ArrowRight className="size-4 shrink-0 text-content-muted" aria-hidden />
+              <ArrowRight
+                className="size-4 shrink-0 text-content-subtle transition-transform group-hover:translate-x-1 group-hover:text-brand-600"
+                aria-hidden
+              />
             </Link>
           ) : (
             <span />
@@ -139,7 +164,7 @@ export default async function ControlDetailPage({ params }: PageProps) {
 
 const AttributeGroup = ({ title, children }: { title: string; children: ReactNode }) => (
   <div className="space-y-2">
-    <p className="text-xs font-medium uppercase tracking-wide text-content-muted">{title}</p>
+    <p className="eyebrow">{title}</p>
     <div className="flex flex-wrap gap-1.5">{children}</div>
   </div>
 );

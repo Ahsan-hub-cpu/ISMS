@@ -1,9 +1,9 @@
-import { Wrench } from "lucide-react";
+import { CheckCircle2, Eye, Timer, Wrench } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
 import { PriorityBadge, RemediationStatusBadge } from "@/components/domain/status-badge";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { Card, CardBody, CardHeader, CardToolbar } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { PageHeader } from "@/components/ui/page-header";
@@ -57,27 +57,45 @@ export default async function RemediationPage({
   return (
     <>
       <PageHeader
+        eyebrow="Operations"
         title="Remediation"
         description="Actions are raised automatically when a gap is identified. Priority and due date come from the gap's risk rating under this project's internal remediation SLA: 14 days for critical, 30 for high, 60 for medium and 90 for low."
       />
 
       {summary ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Stat label="Outstanding" value={summary.outstanding} />
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <Stat icon={Wrench} label="Outstanding" value={summary.outstanding} tone="brand" />
           <Stat
+            icon={Timer}
             label="Overdue"
             value={summary.overdue}
+            hint={summary.overdue > 0 ? "Past the internal SLA date" : "All actions on schedule"}
             tone={summary.overdue > 0 ? "danger" : "success"}
           />
-          <Stat label="In review" value={summary.byStatus.IN_REVIEW} tone="warning" />
-          <Stat label="Completed" value={summary.completed} tone="success" />
+          <Stat
+            icon={Eye}
+            label="In review"
+            value={summary.byStatus.IN_REVIEW}
+            hint="Waiting on assessor verification"
+            tone="warning"
+          />
+          <Stat
+            icon={CheckCircle2}
+            label="Completed"
+            value={summary.completed}
+            tone="success"
+          />
         </div>
       ) : null}
 
       <Card>
-        <CardHeader title="Action plan" description="Open work first, soonest due date at the top." />
+        <CardHeader
+          icon={Wrench}
+          title="Action plan"
+          description="Open work first, soonest due date at the top."
+        />
 
-        <CardBody className="space-y-4">
+        <CardToolbar>
           <FilterBar
             searchPlaceholder="Search by reference, title or control…"
             filters={[
@@ -98,7 +116,9 @@ export default async function RemediationPage({
               { key: "ownerId", label: "Any owner", options: owners },
             ]}
           />
+        </CardToolbar>
 
+        <CardBody className="p-0">
           {!actions || actions.items.length === 0 ? (
             <EmptyState
               icon={Wrench}
@@ -160,12 +180,14 @@ export default async function RemediationPage({
           )}
 
           {actions ? (
-            <Pagination
-              page={actions.page}
-              totalPages={actions.totalPages}
-              total={actions.total}
-              buildHref={(page) => hrefWith({ page: String(page) })}
-            />
+            <div className="px-5 pb-4">
+              <Pagination
+                page={actions.page}
+                totalPages={actions.totalPages}
+                total={actions.total}
+                buildHref={(page) => hrefWith({ page: String(page) })}
+              />
+            </div>
           ) : null}
         </CardBody>
       </Card>

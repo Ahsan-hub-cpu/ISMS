@@ -1,9 +1,10 @@
 "use client";
 
-import { AlertCircle, Loader2, LogIn } from "lucide-react";
+import { Loader2, LogIn } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
 import type { ApiResponse } from "@/shared/api/http";
@@ -49,15 +50,7 @@ export const LoginForm = ({ redirectTo }: LoginFormProps) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-      {error ? (
-        <p
-          role="alert"
-          className="flex items-start gap-2 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-rose-950/60 dark:text-rose-300"
-        >
-          <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
-          {error}
-        </p>
-      ) : null}
+      {error ? <Alert>{error}</Alert> : null}
 
       <Field label="Email address" htmlFor="email">
         <Input
@@ -85,7 +78,7 @@ export const LoginForm = ({ redirectTo }: LoginFormProps) => {
         />
       </Field>
 
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
+      <Button type="submit" size="lg" className="mt-1 w-full" disabled={isSubmitting}>
         {isSubmitting ? (
           <Loader2 className="size-4 animate-spin" aria-hidden />
         ) : (
