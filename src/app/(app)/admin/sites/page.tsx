@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: "Sites" };
 
 export default async function SitesPage() {
   const session = await requirePermission("organization:manage");
-  const canManage = can(session.role, "organization:manage");
+  const canManage = can(session, "organization:manage");
   const organizationId = await organizationService.currentId();
   const sites = await organizationService.listSites(organizationId);
 

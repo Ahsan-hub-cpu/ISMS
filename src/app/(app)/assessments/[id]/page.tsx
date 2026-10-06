@@ -54,7 +54,7 @@ export default async function AssessmentDetailPage({
   const items = itemsResult.ok ? itemsResult.value : null;
   const themes = catalogueResult.ok ? catalogueResult.value.themes : [];
 
-  const readOnly = !isEditable(assessment.status) || !can(session.role, "assessments:conduct");
+  const readOnly = !isEditable(assessment.status) || !can(session, "assessments:conduct");
   const hrefWith = hrefBuilder(`/assessments/${id}`, rawParams);
   const { progress } = assessment;
 
@@ -70,8 +70,8 @@ export default async function AssessmentDetailPage({
             <AssessmentActions
               assessmentId={assessment.id}
               status={assessment.status}
-              canConduct={can(session.role, "assessments:conduct")}
-              canApprove={can(session.role, "assessments:approve")}
+              canConduct={can(session, "assessments:conduct")}
+              canApprove={can(session, "assessments:approve")}
             />
           </div>
         }

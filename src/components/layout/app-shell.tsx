@@ -28,7 +28,7 @@ export const AppShell = ({
       />
 
       <SidebarBrand organizationShortName={organizationShortName} />
-      <SidebarNav role={user.role} />
+      <SidebarNav permissions={user.permissions} />
 
       <div className="relative border-t border-sidebar-border px-5 py-3.5">
         <p className="text-[0.625rem] uppercase tracking-[0.14em] text-sidebar-muted/50">
@@ -39,7 +39,7 @@ export const AppShell = ({
 
     <div className="app-canvas flex min-w-0 flex-1 flex-col">
       <header className="surface-glass sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b border-surface-border px-4 sm:px-6">
-        <MobileNav role={user.role} organizationShortName={organizationShortName} />
+        <MobileNav permissions={user.permissions} organizationShortName={organizationShortName} />
 
         <div className="min-w-0">
           <p className="truncate text-[0.8125rem] font-semibold tracking-tight text-content">

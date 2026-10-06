@@ -1,27 +1,28 @@
-import { ShieldCheck, Users } from "lucide-react";
+import Link from "next/link";
+import { Shield, Users } from "lucide-react";
 import type { Metadata } from "next";
 
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { authService } from "@/modules/auth";
 import { can } from "@/modules/auth/domain/permissions";
-import { ROLE_DESCRIPTIONS, ROLE_LABELS, USER_ROLES } from "@/modules/auth/domain/user";
 import { requirePermission } from "@/modules/auth/presentation/guards";
 import { organizationService } from "@/modules/organization";
 
 import { CreateUserForm } from "./create-user-form";
-import type { SiteOption, UserRow } from "./types";
+import type { RoleOption, SiteOption, UserRow } from "./types";
 import { UserTable } from "./user-table";
 
-export const metadata: Metadata = { title: "Users & Roles" };
+export const metadata: Metadata = { title: "Users" };
 
 export default async function UsersPage() {
   const session = await requirePermission("users:read");
-  const canManage = can(session.role, "users:manage");
+  const canManage = can(session, "users:manage");
 
-  const [usersResult, organizationResult] = await Promise.all([
+  const [usersResult, organizationResult, roles] = await Promise.all([
     authService.listUsers(),
     organizationService.getProfile(),
+    authService.listRoleSummaries(),
   ]);
 
   const users: UserRow[] = usersResult.ok
@@ -30,7 +31,8 @@ export default async function UsersPage() {
         email: user.email,
         fullName: user.fullName,
         jobTitle: user.jobTitle,
-        role: user.role,
+        roleId: user.roleId,
+        roleName: user.roleName,
         isActive: user.isActive,
         siteId: user.siteId,
         lastLoginAt: user.lastLoginAt?.toISOString() ?? null,
@@ -41,13 +43,33 @@ export default async function UsersPage() {
     ? organizationResult.value.sites.map((site) => ({ id: site.id, name: site.name }))
     : [];
 
+  const roleOptions: RoleOption[] = roles.map((role) => ({
+    id: role.id,
+    code: role.code,
+    name: role.name,
+    description: role.description,
+  }));
+
   return (
     <>
       <PageHeader
         eyebrow="Administration"
-        title="Users & Roles"
-        description="Accounts that may access the ISMS platform and the permissions attached to each role."
-        actions={canManage ? <CreateUserForm sites={sites} /> : null}
+        title="Users"
+        description="Accounts that may access the ISMS platform. Permissions come from the assigned role."
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            {canManage ? (
+              <Link
+                href="/admin/roles"
+                className="inline-flex h-10 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-surface-border-strong bg-surface-raised px-4 text-sm font-medium text-content shadow-[0_1px_2px_oklch(0.35_0.04_220/0.06)] transition-colors hover:border-brand-300 hover:bg-brand-50 hover:text-brand-800 dark:hover:border-brand-700 dark:hover:bg-brand-950/60 dark:hover:text-brand-200"
+              >
+                <Shield className="size-4" aria-hidden />
+                Manage roles
+              </Link>
+            ) : null}
+            {canManage ? <CreateUserForm sites={sites} roles={roleOptions} /> : null}
+          </div>
+        }
       />
 
       <Card>
@@ -60,34 +82,10 @@ export default async function UsersPage() {
           <UserTable
             users={users}
             sites={sites}
+            roles={roleOptions}
             canManage={canManage}
             currentUserId={session.id}
           />
-        </CardBody>
-      </Card>
-
-      <Card>
-        <CardHeader
-          icon={ShieldCheck}
-          title="Role definitions"
-          description="Permissions are derived from the role, so screens and endpoints check permissions rather than roles."
-        />
-        <CardBody className="grid gap-3 sm:grid-cols-2">
-          {USER_ROLES.map((role) => (
-            <div
-              key={role}
-              className="relative overflow-hidden rounded-xl border border-surface-border bg-surface-sunken/50 px-4 py-3.5"
-            >
-              <span
-                aria-hidden
-                className="absolute inset-y-3 left-0 w-[3px] rounded-r-full bg-brand-400"
-              />
-              <p className="pl-2 text-sm font-semibold text-content">{ROLE_LABELS[role]}</p>
-              <p className="mt-1 pl-2 text-xs leading-relaxed text-content-muted">
-                {ROLE_DESCRIPTIONS[role]}
-              </p>
-            </div>
-          ))}
         </CardBody>
       </Card>
     </>

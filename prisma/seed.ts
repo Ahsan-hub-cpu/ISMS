@@ -2,22 +2,24 @@
  * SEED POLICY — reference data only.
  *
  * This script writes the stable records an empty installation needs before
- * anyone can log in: the organisation, its sites, one demonstration account per
- * role, and the framework catalogue. It deliberately writes no operational
- * data. Assessments, findings, gaps, evidence, remediation actions and audit
- * records are created only by people using the application, so what the reports
- * show is always the result of real workflow rather than fixtures.
+ * anyone can log in: the organisation, its sites, system roles, one demonstration
+ * account per role, and the framework catalogue. It deliberately writes no
+ * operational data. Assessments, findings, gaps, evidence, remediation actions
+ * and audit records are created only by people using the application, so what
+ * the reports show is always the result of real workflow rather than fixtures.
  *
  * Every write is an upsert keyed on a stable natural key (organisation id, site
- * code, user email, framework code, control code), so `npm run db:seed` can be
- * run any number of times without creating duplicates. Existing password
+ * code, role code, user email, framework code, control code), so `npm run db:seed`
+ * can be run any number of times without creating duplicates. Existing password
  * hashes are left alone on re-run, so a changed password is not reset.
  */
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
-import { PrismaClient, type UserRole } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+
+import { SYSTEM_ROLE_PERMISSIONS } from "../src/modules/auth/domain/permissions";
 
 const prisma = new PrismaClient();
 
@@ -138,45 +140,142 @@ const SITES = [
   { code: "AUB", name: "Auburn Hospital", region: "Cumberland" },
 ];
 
+const SYSTEM_ROLES: {
+  id: string;
+  code: keyof typeof SYSTEM_ROLE_PERMISSIONS;
+  name: string;
+  description: string;
+}[] = [
+  {
+    id: "role-administrator",
+    code: "ADMINISTRATOR",
+    name: "Administrator",
+    description: "Full access: users, roles, sites and every compliance operation.",
+  },
+  {
+    id: "role-assessor",
+    code: "ASSESSOR",
+    name: "Assessor / Compliance Officer",
+    description: "Prepares the register, records findings, manages gaps and submits assessments.",
+  },
+  {
+    id: "role-approver",
+    code: "APPROVER",
+    name: "Approver",
+    description: "Approves submitted assessments and confirms gap closure. Does not record findings.",
+  },
+  {
+    id: "role-control-owner",
+    code: "CONTROL_OWNER",
+    name: "Control Owner",
+    description: "Owns assigned controls; uploads evidence and updates remediation progress.",
+  },
+];
+
 /** Demonstration accounts, one per role. Passwords are for local use only. */
 const USERS: {
   email: string;
   fullName: string;
   jobTitle: string;
-  role: UserRole;
+  roleCode: keyof typeof SYSTEM_ROLE_PERMISSIONS;
   password: string;
   siteCode?: string;
 }[] = [
   {
-    email: "admin@nrlhd.health.nsw.gov.au",
-    fullName: "Amelia Ward",
+    email: "ahsan@nrlhd.health.nsw.gov.au",
+    fullName: "Ahsan",
     jobTitle: "ISMS Administrator",
-    role: "ADMINISTRATOR",
+    roleCode: "ADMINISTRATOR",
     password: "Administrator1",
   },
   {
-    email: "assessor@nrlhd.health.nsw.gov.au",
-    fullName: "Daniel Ortiz",
+    email: "ali@nrlhd.health.nsw.gov.au",
+    fullName: "Ali",
     jobTitle: "Compliance Officer",
-    role: "ASSESSOR",
+    roleCode: "ASSESSOR",
     password: "Assessor12345",
   },
   {
-    email: "owner@nrlhd.health.nsw.gov.au",
-    fullName: "Priya Nair",
+    email: "imran@nrlhd.health.nsw.gov.au",
+    fullName: "Imran",
+    jobTitle: "Compliance Approver",
+    roleCode: "APPROVER",
+    password: "Approver12345",
+  },
+  {
+    email: "hasnain@nrlhd.health.nsw.gov.au",
+    fullName: "Hasnain",
     jobTitle: "Clinical Systems Manager",
-    role: "CONTROL_OWNER",
+    roleCode: "CONTROL_OWNER",
     password: "Controlowner1",
     siteCode: "WMD",
   },
-  {
-    email: "viewer@nrlhd.health.nsw.gov.au",
-    fullName: "Grace Lim",
-    jobTitle: "Executive Director",
-    role: "VIEWER",
-    password: "Viewer1234567",
-  },
 ];
+
+/** Older demo logins — re-pointed so existing DBs keep the same four seats. */
+const LEGACY_USER_EMAIL_BY_ROLE: Partial<Record<keyof typeof SYSTEM_ROLE_PERMISSIONS, string>> = {
+  ADMINISTRATOR: "admin@nrlhd.health.nsw.gov.au",
+  ASSESSOR: "assessor@nrlhd.health.nsw.gov.au",
+  APPROVER: "viewer@nrlhd.health.nsw.gov.au",
+  CONTROL_OWNER: "owner@nrlhd.health.nsw.gov.au",
+};
+
+/** Rename legacy Viewer system role before upserting Approver permissions. */
+async function migrateViewerRoleToApprover() {
+  const viewer = await prisma.role.findUnique({ where: { code: "VIEWER" } });
+  if (!viewer) return;
+
+  const existingApprover = await prisma.role.findUnique({ where: { code: "APPROVER" } });
+  if (!existingApprover) {
+    await prisma.role.update({
+      where: { id: viewer.id },
+      data: {
+        code: "APPROVER",
+        name: "Approver",
+        description:
+          "Approves submitted assessments and confirms gap closure. Does not record findings.",
+      },
+    });
+    return;
+  }
+
+  await prisma.user.updateMany({
+    where: { roleId: viewer.id },
+    data: { roleId: existingApprover.id },
+  });
+  await prisma.rolePermission.deleteMany({ where: { roleId: viewer.id } });
+  await prisma.role.delete({ where: { id: viewer.id } });
+}
+
+async function seedRoles() {
+  await migrateViewerRoleToApprover();
+
+  for (const role of SYSTEM_ROLES) {
+    await prisma.role.upsert({
+      where: { code: role.code },
+      update: {
+        name: role.name,
+        description: role.description,
+        isSystem: true,
+      },
+      create: {
+        id: role.id,
+        code: role.code,
+        name: role.name,
+        description: role.description,
+        isSystem: true,
+      },
+    });
+
+    const stored = await prisma.role.findUniqueOrThrow({ where: { code: role.code } });
+    const permissions = SYSTEM_ROLE_PERMISSIONS[role.code];
+
+    await prisma.rolePermission.deleteMany({ where: { roleId: stored.id } });
+    await prisma.rolePermission.createMany({
+      data: permissions.map((permission) => ({ roleId: stored.id, permission })),
+    });
+  }
+}
 
 async function main() {
   const organization = await prisma.organization.upsert({
@@ -193,6 +292,12 @@ async function main() {
     });
   }
 
+  await seedRoles();
+
+  const rolesByCode = Object.fromEntries(
+    (await prisma.role.findMany()).map((role) => [role.code, role]),
+  );
+
   for (const user of USERS) {
     const site = user.siteCode
       ? await prisma.site.findUnique({
@@ -200,21 +305,48 @@ async function main() {
         })
       : null;
 
+    const role = rolesByCode[user.roleCode];
+    if (!role) {
+      throw new Error(`Missing system role ${user.roleCode}`);
+    }
+
     const passwordHash = await bcrypt.hash(user.password, 12);
+    const legacyEmail = LEGACY_USER_EMAIL_BY_ROLE[user.roleCode];
+
+    // Prefer updating the old demo row in place so FK history stays attached.
+    if (legacyEmail && legacyEmail !== user.email) {
+      const legacy = await prisma.user.findUnique({ where: { email: legacyEmail } });
+      const taken = await prisma.user.findUnique({ where: { email: user.email } });
+      if (legacy && !taken) {
+        await prisma.user.update({
+          where: { email: legacyEmail },
+          data: {
+            email: user.email,
+            fullName: user.fullName,
+            jobTitle: user.jobTitle,
+            roleId: role.id,
+            passwordHash,
+            siteId: site?.id ?? null,
+          },
+        });
+        continue;
+      }
+    }
 
     await prisma.user.upsert({
       where: { email: user.email },
       update: {
         fullName: user.fullName,
         jobTitle: user.jobTitle,
-        role: user.role,
+        roleId: role.id,
+        passwordHash,
         siteId: site?.id ?? null,
       },
       create: {
         email: user.email,
         fullName: user.fullName,
         jobTitle: user.jobTitle,
-        role: user.role,
+        roleId: role.id,
         passwordHash,
         siteId: site?.id ?? null,
       },
@@ -222,7 +354,7 @@ async function main() {
   }
 
   console.log(
-    `Seeded ${ORGANIZATION.shortName}: ${SITES.length} sites, ${USERS.length} demonstration accounts.`,
+    `Seeded ${ORGANIZATION.shortName}: ${SITES.length} sites, ${SYSTEM_ROLES.length} roles, ${USERS.length} demonstration accounts.`,
   );
 
   for (const fileName of CATALOGUE_FILES) {

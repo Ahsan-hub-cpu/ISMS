@@ -1,9 +1,10 @@
-import { BadgeCheck, FileSearch, FolderLock, Gavel, Scale, Wrench } from "lucide-react";
+import { BadgeCheck, FileSearch, FolderLock, Gavel, ListOrdered, Scale, Wrench } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import {
+  EvidenceReviewBadge,
   GapStatusBadge,
   PriorityBadge,
   RemediationStatusBadge,
@@ -15,7 +16,7 @@ import { Progress } from "@/components/ui/stat";
 import { can } from "@/modules/auth/domain/permissions";
 import { requirePermission } from "@/modules/auth/presentation/guards";
 import { evidenceService } from "@/modules/evidence";
-import { gapService } from "@/modules/gap";
+import { GAP_STATUS_HINTS, gapService } from "@/modules/gap";
 import { organizationService } from "@/modules/organization";
 import { remediationService } from "@/modules/remediation";
 
@@ -43,6 +44,24 @@ export default async function GapDetailPage({ params }: { params: Promise<{ id: 
 
   const actions = actionsResult.ok ? actionsResult.value.items : [];
   const evidence = evidenceResult.ok ? evidenceResult.value.items : [];
+  const openActions = actions.filter(
+    (action) => action.status === "OPEN" || action.status === "IN_PROGRESS",
+  ).length;
+  const pendingEvidence = evidence.filter((item) => item.reviewStatus === "PENDING").length;
+  const acceptedEvidence = evidence.filter((item) => item.reviewStatus === "ACCEPTED").length;
+
+  const nextActorHint =
+    gap.status === "RESOLVED" || gap.status === "RISK_ACCEPTED"
+      ? "This gap is closed."
+      : openActions > 0
+        ? "Waiting on Control Owner: finish remediation and upload evidence (file or link)."
+        : pendingEvidence > 0
+          ? "Waiting on Assessor/Approver: review Pending evidence (Accept or Reject)."
+          : gap.status !== "AWAITING_REVIEW"
+            ? "Waiting on Assessor: move gap status to Awaiting review when the fix is ready."
+            : blockers.length > 0
+              ? "Waiting on Assessor/Approver: clear the blockers below, then mark Resolved."
+              : "Waiting on Assessor/Approver: mark the gap Resolved.";
 
   return (
     <>
@@ -57,6 +76,34 @@ export default async function GapDetailPage({ params }: { params: Promise<{ id: 
           </div>
         }
       />
+
+      <Card>
+        <CardHeader
+          icon={ListOrdered}
+          title="Where this gap is stuck"
+          description={GAP_STATUS_HINTS[gap.status]}
+        />
+        <CardBody className="space-y-3">
+          <p className="text-sm font-medium text-content">{nextActorHint}</p>
+          <ol className="list-decimal space-y-1 pl-4 text-sm text-content-muted">
+            <li>
+              Owner: remediation{" "}
+              {openActions > 0 ? `(${openActions} still open)` : "(actions clear)"} + evidence
+              upload
+            </li>
+            <li>
+              Assessor: Accept evidence{" "}
+              {pendingEvidence > 0
+                ? `(${pendingEvidence} pending)`
+                : acceptedEvidence > 0
+                  ? `(${acceptedEvidence} accepted)`
+                  : "(none yet)"}
+            </li>
+            <li>Assessor: set status to Awaiting review</li>
+            <li>Assessor/Approver: Mark as Resolved (button) when blockers are empty</li>
+          </ol>
+        </CardBody>
+      </Card>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_22rem]">
         <div className="space-y-4">
@@ -118,7 +165,7 @@ export default async function GapDetailPage({ params }: { params: Promise<{ id: 
             </CardBody>
           </Card>
 
-          {can(session.role, "gaps:manage") ? (
+          {can(session, "gaps:manage") ? (
             <Card>
               <CardHeader icon={Gavel} title="Assessor decision" />
               <CardBody>
@@ -204,19 +251,22 @@ export default async function GapDetailPage({ params }: { params: Promise<{ id: 
               ) : (
                 <ul className="space-y-2 text-sm">
                   {evidence.map((item) => (
-                    <li key={item.id}>
-                      <Link href="/evidence" className="font-medium hover:underline">
-                        {item.title}
-                      </Link>
-                      <span className="block text-xs text-content-muted">
-                        {item.uploadedByName ?? "Unknown"} · {formatDate(item.createdAt)}
+                    <li key={item.id} className="flex items-start justify-between gap-2">
+                      <span className="min-w-0">
+                        <Link href="/evidence" className="font-medium hover:underline">
+                          {item.title}
+                        </Link>
+                        <span className="block text-xs text-content-muted">
+                          {item.uploadedByName ?? "Unknown"} · {formatDate(item.createdAt)}
+                        </span>
                       </span>
+                      <EvidenceReviewBadge status={item.reviewStatus} />
                     </li>
                   ))}
                 </ul>
               )}
 
-              {can(session.role, "evidence:upload") ? (
+              {can(session, "evidence:upload") ? (
                 <EvidenceUploader target={{ gapId: gap.id }} compact />
               ) : null}
             </CardBody>

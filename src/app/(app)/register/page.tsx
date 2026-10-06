@@ -63,13 +63,14 @@ export default async function RegisterPage({
 
   const summary = summaryResult.ok ? summaryResult.value : null;
   const entries = entriesResult.ok ? entriesResult.value : null;
+  // SoD: only Control Owner role holders can be assigned on the register.
   const owners = usersResult.ok
     ? usersResult.value
-        .filter((user) => user.isActive)
+        .filter((user) => user.isActive && user.roleCode === "CONTROL_OWNER")
         .map((user) => ({ id: user.id, name: user.fullName }))
     : [];
 
-  const canManage = can(session.role, "register:manage");
+  const canManage = can(session, "register:manage");
   const hrefWith = hrefBuilder("/register", rawParams);
 
   return (

@@ -1,4 +1,5 @@
 import {
+  Bell,
   ClipboardCheck,
   FileCheck2,
   FolderLock,
@@ -8,13 +9,14 @@ import {
   MapPin,
   ScrollText,
   ShieldAlert,
+  Shield,
   Users,
   Wrench,
   type LucideIcon,
 } from "lucide-react";
 
 import { can, type Permission } from "@/modules/auth/domain/permissions";
-import type { UserRole } from "@/modules/auth/domain/user";
+import type { SessionUser } from "@/modules/auth/domain/user";
 
 export interface NavItem {
   label: string;
@@ -34,7 +36,10 @@ export interface NavSection {
 const allSections: NavSection[] = [
   {
     title: "Overview",
-    items: [{ label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, available: true }],
+    items: [
+      { label: "My work", href: "/work", icon: Bell, available: true },
+      { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, available: true },
+    ],
   },
   {
     title: "Compliance",
@@ -93,10 +98,17 @@ const allSections: NavSection[] = [
     title: "Administration",
     items: [
       {
-        label: "Users & Roles",
+        label: "Users",
         href: "/admin/users",
         icon: Users,
         permission: "users:read",
+        available: true,
+      },
+      {
+        label: "Roles",
+        href: "/admin/roles",
+        icon: Shield,
+        permission: "users:manage",
         available: true,
       },
       {
@@ -117,11 +129,11 @@ const allSections: NavSection[] = [
   },
 ];
 
-/** Menu entries the given role is allowed to see. Empty sections are dropped. */
-export const navigationFor = (role: UserRole): NavSection[] =>
+/** Menu entries the signed-in user is allowed to see. Empty sections are dropped. */
+export const navigationFor = (user: Pick<SessionUser, "permissions">): NavSection[] =>
   allSections
     .map((section) => ({
       ...section,
-      items: section.items.filter((item) => !item.permission || can(role, item.permission)),
+      items: section.items.filter((item) => !item.permission || can(user, item.permission)),
     }))
     .filter((section) => section.items.length > 0);

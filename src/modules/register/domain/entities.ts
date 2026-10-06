@@ -47,6 +47,11 @@ export interface RegisterEntry {
   readonly implementationNotes: string | null;
   readonly reviewDueAt: Date | null;
   readonly updatedAt: Date;
+  /**
+   * True when a gap for this control was resolved and nothing is outstanding —
+   * the row stays viewable but should not be casually re-edited.
+   */
+  readonly closureLocked: boolean;
 }
 
 export interface RegisterSummary {

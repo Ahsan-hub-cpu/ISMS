@@ -36,6 +36,7 @@ export const RegisterRowEditor = ({ entry, owners, sites }: RegisterRowEditorPro
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [failure, setFailure] = useState<ApiFailure | null>(null);
+  const locked = entry.closureLocked;
 
   const [form, setForm] = useState({
     ownerId: entry.ownerId ?? "",
@@ -69,6 +70,7 @@ export const RegisterRowEditor = ({ entry, owners, sites }: RegisterRowEditorPro
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (locked) return;
     setFailure(null);
     setIsSaving(true);
 
@@ -95,9 +97,19 @@ export const RegisterRowEditor = ({ entry, owners, sites }: RegisterRowEditorPro
 
   return (
     <>
-      <Button variant="secondary" size="sm" onClick={open}>
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={open}
+        disabled={locked}
+        title={
+          locked
+            ? "Locked — gap resolved and control marked Implemented"
+            : undefined
+        }
+      >
         <Pencil className="size-3.5" aria-hidden />
-        Edit
+        {locked ? "Locked" : "Edit"}
       </Button>
 
       <Modal
@@ -107,24 +119,40 @@ export const RegisterRowEditor = ({ entry, owners, sites }: RegisterRowEditorPro
         description={entry.themeName}
         size="lg"
         footer={
-          <>
+          locked ? (
             <Button variant="secondary" onClick={() => setIsOpen(false)}>
-              Cancel
+              Close
             </Button>
-            <Button type="submit" form={`register-edit-${entry.id}`} disabled={isSaving}>
-              {isSaving ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
-              Save changes
-            </Button>
-          </>
+          ) : (
+            <>
+              <Button variant="secondary" onClick={() => setIsOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" form={`register-edit-${entry.id}`} disabled={isSaving}>
+                {isSaving ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
+                Save changes
+              </Button>
+            </>
+          )
         }
       >
+        {locked ? (
+          <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
+            This control is locked because its gap was resolved. Implementation is{" "}
+            <strong>Implemented</strong>. Reopen the gap if it must change again.
+          </p>
+        ) : null}
         <form id={`register-edit-${entry.id}`} onSubmit={handleSubmit} className="space-y-4" noValidate>
           {failure ? (
             <Alert>{failure.message}</Alert>
           ) : null}
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Control owner" htmlFor={`owner-${entry.id}`}>
+            <Field
+              label="Control owner"
+              htmlFor={`owner-${entry.id}`}
+              hint="Only users with the Control Owner role"
+            >
               <Select
                 id={`owner-${entry.id}`}
                 value={form.ownerId}

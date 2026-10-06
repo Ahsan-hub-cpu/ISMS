@@ -74,8 +74,12 @@ export interface AssessmentItem {
   readonly assessedByName: string | null;
   readonly assessedAt: Date | null;
   readonly gapReference: string | null;
+  readonly gapStatus: string | null;
   readonly gapRiskRating: string | null;
   readonly evidenceCount: number;
+  /** From the control register — helps spot claim vs finding mismatches. */
+  readonly registerImplementationStatus: string | null;
+  readonly registerImplementationLabel: string | null;
 }
 
 /** Delegates to the single compliance formula in `./scoring`. */
@@ -95,3 +99,37 @@ export const summariseProgress = (
 
 export const isEditable = (status: AssessmentStatus) =>
   status === "DRAFT" || status === "IN_PROGRESS";
+
+/**
+ * Register says little/no implementation is live, but the finding says fully
+ * compliant — assessors should justify or choose a shortfall status.
+ */
+export const isRegisterFindingMismatch = (
+  registerImplementationStatus: string | null,
+  finding: ComplianceStatus,
+): boolean => {
+  if (finding !== "COMPLIANT") return false;
+  return (
+    registerImplementationStatus === "NOT_IMPLEMENTED" ||
+    registerImplementationStatus === "PLANNED"
+  );
+};
+
+/** Sensible default when opening the finding form for an unassessed control. */
+export const suggestedFindingStatus = (
+  registerImplementationStatus: string | null,
+): Exclude<ComplianceStatus, "NOT_ASSESSED"> => {
+  if (
+    registerImplementationStatus === "NOT_IMPLEMENTED" ||
+    registerImplementationStatus === "PLANNED"
+  ) {
+    return "NON_COMPLIANT";
+  }
+  if (registerImplementationStatus === "PARTIALLY_IMPLEMENTED") {
+    return "PARTIALLY_COMPLIANT";
+  }
+  if (registerImplementationStatus === "IMPLEMENTED") {
+    return "COMPLIANT";
+  }
+  return "COMPLIANT";
+};

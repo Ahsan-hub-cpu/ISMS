@@ -4,21 +4,21 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 
-import type { UserRole } from "@/modules/auth/domain/user";
+import type { Permission } from "@/modules/auth/domain/permissions";
 import { cn } from "@/shared/utils/cn";
 
 import { navigationFor } from "./navigation";
 
 interface SidebarNavProps {
-  role: UserRole;
+  permissions: readonly Permission[];
   /** Closes the mobile drawer once a destination is picked. */
   onNavigate?: () => void;
 }
 
-/** The role is passed from the server; icon components cannot cross that boundary. */
-export const SidebarNav = ({ role, onNavigate }: SidebarNavProps) => {
+/** Permissions are passed from the server; icon components cannot cross that boundary. */
+export const SidebarNav = ({ permissions, onNavigate }: SidebarNavProps) => {
   const pathname = usePathname();
-  const sections = useMemo(() => navigationFor(role), [role]);
+  const sections = useMemo(() => navigationFor({ permissions }), [permissions]);
 
   return (
     <nav className="relative flex-1 space-y-7 overflow-y-auto px-3 py-5">
@@ -61,7 +61,6 @@ export const SidebarNav = ({ role, onNavigate }: SidebarNavProps) => {
                     : "font-medium text-sidebar-muted hover:bg-white/[0.05] hover:text-white",
                 )}
               >
-                {/* Rail marker instead of a filled pill keeps the dark panel calm. */}
                 <span
                   aria-hidden
                   className={cn(

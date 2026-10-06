@@ -1,18 +1,19 @@
-import type { User, UserRole, UserWithCredentials } from "../../domain/user";
+import type { Permission } from "../../domain/permissions";
+import type { User, UserWithCredentials } from "../../domain/user";
 
-export interface CreateUserData {
+export interface NewUser {
   readonly email: string;
   readonly fullName: string;
   readonly jobTitle: string | null;
   readonly passwordHash: string;
-  readonly role: UserRole;
+  readonly roleId: string;
   readonly siteId: string | null;
 }
 
-export interface UpdateUserData {
+export interface UserUpdates {
   readonly fullName?: string;
   readonly jobTitle?: string | null;
-  readonly role?: UserRole;
+  readonly roleId?: string;
   readonly isActive?: boolean;
   readonly siteId?: string | null;
 }
@@ -22,8 +23,8 @@ export interface UserRepository {
   findByEmail(email: string): Promise<UserWithCredentials | null>;
   existsByEmail(email: string): Promise<boolean>;
   list(): Promise<User[]>;
-  create(data: CreateUserData): Promise<User>;
-  update(id: string, data: UpdateUserData): Promise<User>;
+  create(data: NewUser): Promise<User>;
+  update(id: string, data: UserUpdates): Promise<User>;
   recordSignIn(id: string, at: Date): Promise<void>;
-  countByRole(role: UserRole, options?: { activeOnly?: boolean }): Promise<number>;
+  countByRoleId(roleId: string, options?: { activeOnly?: boolean }): Promise<number>;
 }

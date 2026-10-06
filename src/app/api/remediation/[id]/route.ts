@@ -27,7 +27,7 @@ export const PATCH = withApiHandler(async (request: Request, context: RouteConte
   const { id } = await context.params;
   const changes = await parseJsonBody(request, updateRemediationSchema);
 
-  if (!can(actor.role, "remediation:manage")) {
+  if (!can(actor, "remediation:manage")) {
     const action = await remediationService.findById(id);
     if (!action) throw new NotFoundError("Remediation action", id);
 

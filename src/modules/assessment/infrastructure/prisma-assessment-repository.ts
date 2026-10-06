@@ -23,32 +23,59 @@ const assessmentRelations = {
 type AssessmentRow = Prisma.AssessmentGetPayload<{ include: typeof assessmentRelations }>;
 
 const itemRelations = {
-  control: { include: { theme: { select: { code: true, name: true } } } },
+  control: {
+    include: {
+      theme: { select: { code: true, name: true } },
+      registerEntries: {
+        select: { organizationId: true, implementationStatus: true },
+      },
+    },
+  },
   assessedBy: { select: { fullName: true } },
-  gap: { select: { reference: true, riskRating: true } },
+  gap: { select: { reference: true, riskRating: true, status: true } },
+  assessment: { select: { organizationId: true } },
   _count: { select: { evidenceLinks: true } },
 } satisfies Prisma.AssessmentItemInclude;
 
 type ItemRow = Prisma.AssessmentItemGetPayload<{ include: typeof itemRelations }>;
 
-const toItem = (row: ItemRow): AssessmentItem => ({
-  id: row.id,
-  assessmentId: row.assessmentId,
-  controlId: row.controlId,
-  controlCode: row.control.code,
-  controlTitle: row.control.title,
-  controlPurpose: row.control.purpose,
-  themeCode: row.control.theme.code,
-  themeName: row.control.theme.name,
-  status: row.status,
-  currentPractice: row.currentPractice,
-  rationale: row.rationale,
-  assessedByName: row.assessedBy?.fullName ?? null,
-  assessedAt: row.assessedAt,
-  gapReference: row.gap?.reference ?? null,
-  gapRiskRating: row.gap?.riskRating ?? null,
-  evidenceCount: row._count.evidenceLinks,
-});
+const IMPLEMENTATION_LABELS: Record<string, string> = {
+  NOT_IMPLEMENTED: "Not implemented",
+  PLANNED: "Planned",
+  PARTIALLY_IMPLEMENTED: "Partially implemented",
+  IMPLEMENTED: "Implemented",
+};
+
+const toItem = (row: ItemRow): AssessmentItem => {
+  const register = row.control.registerEntries.find(
+    (entry) => entry.organizationId === row.assessment.organizationId,
+  );
+  const registerImplementationStatus = register?.implementationStatus ?? null;
+
+  return {
+    id: row.id,
+    assessmentId: row.assessmentId,
+    controlId: row.controlId,
+    controlCode: row.control.code,
+    controlTitle: row.control.title,
+    controlPurpose: row.control.purpose,
+    themeCode: row.control.theme.code,
+    themeName: row.control.theme.name,
+    status: row.status,
+    currentPractice: row.currentPractice,
+    rationale: row.rationale,
+    assessedByName: row.assessedBy?.fullName ?? null,
+    assessedAt: row.assessedAt,
+    gapReference: row.gap?.reference ?? null,
+    gapStatus: row.gap?.status ?? null,
+    gapRiskRating: row.gap?.riskRating ?? null,
+    evidenceCount: row._count.evidenceLinks,
+    registerImplementationStatus,
+    registerImplementationLabel: registerImplementationStatus
+      ? (IMPLEMENTATION_LABELS[registerImplementationStatus] ?? registerImplementationStatus)
+      : null,
+  };
+};
 
 const progressFor = async (assessmentId: string) => {
   const grouped = await prisma.assessmentItem.groupBy({
@@ -181,7 +208,10 @@ export const prismaAssessmentRepository: AssessmentRepository = {
   async findItem(itemId) {
     const row = await prisma.assessmentItem.findUnique({
       where: { id: itemId },
-      include: { ...itemRelations, assessment: { select: { status: true } } },
+      include: {
+        ...itemRelations,
+        assessment: { select: { status: true, organizationId: true } },
+      },
     });
 
     if (!row) return null;

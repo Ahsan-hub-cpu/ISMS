@@ -2,11 +2,13 @@ import { ConflictError, NotFoundError } from "@/shared/core/errors";
 import { failure, success, type Result } from "@/shared/core/result";
 
 import type { User } from "../../domain/user";
+import type { RoleRepository } from "../ports/role-repository";
 import type { UserRepository } from "../ports/user-repository";
 import type { UpdateUserInput } from "../schemas";
 
 interface Dependencies {
   readonly users: UserRepository;
+  readonly roles: RoleRepository;
 }
 
 interface Command {
@@ -16,17 +18,28 @@ interface Command {
 }
 
 export const updateUser =
-  ({ users }: Dependencies) =>
+  ({ users, roles }: Dependencies) =>
   async ({ actorId, targetUserId, changes }: Command): Promise<Result<User>> => {
     const target = await users.findById(targetUserId);
     if (!target) {
       return failure(new NotFoundError("User", targetUserId));
     }
 
+    if (changes.roleId) {
+      const role = await roles.findById(changes.roleId);
+      if (!role) {
+        return failure(new NotFoundError("Role", changes.roleId));
+      }
+    }
+
+    const nextRole =
+      changes.roleId && changes.roleId !== target.roleId
+        ? await roles.findById(changes.roleId)
+        : null;
+
     const losesAdminRights =
-      target.role === "ADMINISTRATOR" &&
-      ((changes.role !== undefined && changes.role !== "ADMINISTRATOR") ||
-        changes.isActive === false);
+      target.roleCode === "ADMINISTRATOR" &&
+      ((nextRole !== null && nextRole.code !== "ADMINISTRATOR") || changes.isActive === false);
 
     // Administrators must not be able to lock themselves out of the system.
     if (losesAdminRights && actorId === targetUserId) {
@@ -34,11 +47,22 @@ export const updateUser =
     }
 
     if (losesAdminRights && target.isActive) {
-      const activeAdmins = await users.countByRole("ADMINISTRATOR", { activeOnly: true });
-      if (activeAdmins <= 1) {
-        return failure(new ConflictError("At least one active administrator must remain."));
+      const adminRole = await roles.findByCode("ADMINISTRATOR");
+      if (adminRole) {
+        const activeAdmins = await users.countByRoleId(adminRole.id, { activeOnly: true });
+        if (activeAdmins <= 1) {
+          return failure(new ConflictError("At least one active administrator must remain."));
+        }
       }
     }
 
-    return success(await users.update(targetUserId, changes));
+    return success(
+      await users.update(targetUserId, {
+        ...(changes.fullName !== undefined ? { fullName: changes.fullName } : {}),
+        ...(changes.jobTitle !== undefined ? { jobTitle: changes.jobTitle } : {}),
+        ...(changes.roleId !== undefined ? { roleId: changes.roleId } : {}),
+        ...(changes.isActive !== undefined ? { isActive: changes.isActive } : {}),
+        ...(changes.siteId !== undefined ? { siteId: changes.siteId } : {}),
+      }),
+    );
   };

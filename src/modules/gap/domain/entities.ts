@@ -21,7 +21,8 @@ export const GAP_STATUS_HINTS: Record<GapStatus, string> = {
   OPEN: "Raised by an assessment finding, no remediation work started yet.",
   IN_PROGRESS: "Remediation is under way.",
   AWAITING_REVIEW: "The owner believes the gap is closed; an assessor must verify it.",
-  RESOLVED: "An assessor verified the fix and closed the gap.",
+  RESOLVED:
+    "An assessor verified the fix. The finding is Compliant and the register is Implemented.",
   RISK_ACCEPTED: "Management accepted the exposure instead of remediating it.",
 };
 

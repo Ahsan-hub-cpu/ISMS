@@ -111,10 +111,10 @@ lives in `src/modules/auth/domain/permissions.ts`, so access rules can change in
 
 | Role                          | Can do                                                       |
 | ----------------------------- | ------------------------------------------------------------ |
-| Administrator                 | Everything, including user and framework administration       |
-| Assessor / Compliance Officer | Conduct and approve assessments, manage gaps and remediation  |
-| Control Owner                 | Read compliance data, upload evidence, update assigned work   |
-| Viewer / Management           | Read-only access to dashboards and reports                    |
+| Administrator                 | Everything, including user and role administration           |
+| Assessor / Compliance Officer | Register, assessments (conduct/submit), gaps, evidence review |
+| Approver                      | Approve assessments, confirm gap closure, review evidence    |
+| Control Owner                 | Read compliance data, upload evidence, update assigned work  |
 
 ### Demonstration accounts
 
@@ -122,10 +122,10 @@ Created by `npm run db:seed`. Local demonstration only.
 
 | Email                                 | Password        | Role          |
 | ------------------------------------- | --------------- | ------------- |
-| admin@nrlhd.health.nsw.gov.au         | Administrator1  | Administrator |
-| assessor@nrlhd.health.nsw.gov.au      | Assessor12345   | Assessor      |
-| owner@nrlhd.health.nsw.gov.au         | Controlowner1   | Control Owner |
-| viewer@nrlhd.health.nsw.gov.au        | Viewer1234567   | Viewer        |
+| ahsan@nrlhd.health.nsw.gov.au         | Administrator1  | Administrator |
+| ali@nrlhd.health.nsw.gov.au           | Assessor12345   | Assessor      |
+| imran@nrlhd.health.nsw.gov.au         | Approver12345   | Approver      |
+| hasnain@nrlhd.health.nsw.gov.au       | Controlowner1   | Control Owner |
 
 ## Control catalogue
 
@@ -301,5 +301,6 @@ Validation failures return `422` with field level detail:
   }
 }
 ```
-#   I S M S  
+#   I S M S 
+ 
  

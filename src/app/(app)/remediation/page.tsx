@@ -46,10 +46,12 @@ export default async function RemediationPage({
   const summary = summaryResult.ok ? summaryResult.value : null;
   const actions = actionsResult.ok ? actionsResult.value : null;
   const owners = usersResult.ok
-    ? usersResult.value.filter((user) => user.isActive).map((user) => ({
-        value: user.id,
-        label: user.fullName,
-      }))
+    ? usersResult.value
+        .filter((user) => user.isActive && user.roleCode === "CONTROL_OWNER")
+        .map((user) => ({
+          value: user.id,
+          label: user.fullName,
+        }))
     : [];
 
   const hrefWith = hrefBuilder("/remediation", rawParams);

@@ -31,6 +31,11 @@ export const ProgressForm = ({ action, owners, canPlan }: ProgressFormProps) => 
   const [isSaving, setIsSaving] = useState(false);
   const [failure, setFailure] = useState<ApiFailure | null>(null);
 
+  const locked = action.status === "COMPLETED" || action.status === "CANCELLED";
+  const waitingApproval = action.status === "IN_REVIEW";
+  // Owners wait; assessors/planners may still reopen or adjust while in review.
+  const readOnly = locked || (waitingApproval && !canPlan);
+
   const [form, setForm] = useState({
     status: action.status,
     progressPercent: String(action.progressPercent),
@@ -42,8 +47,23 @@ export const ProgressForm = ({ action, owners, canPlan }: ProgressFormProps) => 
   const errorFor = (field: string) =>
     failure?.issues.find((issue) => issue.field === field)?.message;
 
+  const setProgress = (value: string) => {
+    const percent = Number(value);
+    setForm((current) => ({
+      ...current,
+      progressPercent: value,
+      // UI mirrors server rule: 100% means ready for assessor review.
+      status:
+        percent >= 100 && (current.status === "OPEN" || current.status === "IN_PROGRESS")
+          ? "IN_REVIEW"
+          : current.status,
+    }));
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (readOnly) return;
+
     setFailure(null);
     setIsSaving(true);
 
@@ -65,17 +85,59 @@ export const ProgressForm = ({ action, owners, canPlan }: ProgressFormProps) => 
     router.refresh();
   };
 
+  if (locked) {
+    return (
+      <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
+        <p className="font-medium">
+          {action.status === "COMPLETED"
+            ? "This remediation is completed — editing is locked."
+            : "This remediation is cancelled — editing is locked."}
+        </p>
+        <p className="mt-1 text-xs opacity-90">
+          Evidence was accepted and the fix ticket is closed. Next step is on the linked gap:
+          Assessor sets status to Resolved.
+        </p>
+      </div>
+    );
+  }
+
+  if (waitingApproval && !canPlan) {
+    return (
+      <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
+        <p className="font-medium">Waiting for approval</p>
+        <p className="mt-1 text-xs opacity-90">
+          You saved at 100%. Progress is locked until the Assessor Accepts your evidence. After
+          Accept, this action becomes Completed automatically.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-      {failure ? (
-        <Alert>{failure.message}</Alert>
+      {failure ? <Alert>{failure.message}</Alert> : null}
+
+      {waitingApproval ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
+          <span className="font-medium">Waiting for approval.</span> Owner finished at 100%. Accept
+          evidence (Evidence page) to complete this action, or reopen if more work is needed.
+        </div>
       ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Status" htmlFor="status">
+        <Field
+          label="Status"
+          htmlFor="status"
+          hint={
+            waitingApproval
+              ? "In review = waiting for assessor approval. Prefer Accept evidence over setting Completed by hand."
+              : undefined
+          }
+        >
           <Select
             id="status"
             value={form.status}
+            disabled={readOnly}
             onChange={(event) =>
               setForm((current) => ({
                 ...current,
@@ -83,7 +145,11 @@ export const ProgressForm = ({ action, owners, canPlan }: ProgressFormProps) => 
               }))
             }
           >
-            {REMEDIATION_STATUSES.map((status) => (
+            {REMEDIATION_STATUSES.filter((status) => {
+              // Owners never pick Completed / Cancelled from the form.
+              if (!canPlan && (status === "COMPLETED" || status === "CANCELLED")) return false;
+              return true;
+            }).map((status) => (
               <option key={status} value={status}>
                 {REMEDIATION_STATUS_LABELS[status]}
               </option>
@@ -92,9 +158,9 @@ export const ProgressForm = ({ action, owners, canPlan }: ProgressFormProps) => 
         </Field>
 
         <Field
-          label="Progress"
+          label="Progress %"
           htmlFor="progressPercent"
-          hint="Marking the action completed sets this to 100%."
+          hint="Attach evidence first. 100% is blocked until evidence exists; then status becomes Waiting for approval."
           error={errorFor("progressPercent")}
         >
           <Input
@@ -103,10 +169,9 @@ export const ProgressForm = ({ action, owners, canPlan }: ProgressFormProps) => 
             min={0}
             max={100}
             step={5}
+            disabled={readOnly}
             value={form.progressPercent}
-            onChange={(event) =>
-              setForm((current) => ({ ...current, progressPercent: event.target.value }))
-            }
+            onChange={(event) => setProgress(event.target.value)}
           />
         </Field>
 
@@ -116,6 +181,7 @@ export const ProgressForm = ({ action, owners, canPlan }: ProgressFormProps) => 
               <Select
                 id="ownerId"
                 value={form.ownerId}
+                disabled={readOnly}
                 onChange={(event) =>
                   setForm((current) => ({ ...current, ownerId: event.target.value }))
                 }
@@ -133,6 +199,7 @@ export const ProgressForm = ({ action, owners, canPlan }: ProgressFormProps) => 
               <Select
                 id="priority"
                 value={form.priority}
+                disabled={readOnly}
                 onChange={(event) =>
                   setForm((current) => ({
                     ...current,
@@ -152,6 +219,7 @@ export const ProgressForm = ({ action, owners, canPlan }: ProgressFormProps) => 
               <Input
                 id="dueAt"
                 type="date"
+                disabled={readOnly}
                 value={form.dueAt}
                 onChange={(event) =>
                   setForm((current) => ({ ...current, dueAt: event.target.value }))
@@ -163,7 +231,7 @@ export const ProgressForm = ({ action, owners, canPlan }: ProgressFormProps) => 
       </div>
 
       <div className="flex justify-end">
-        <Button type="submit" size="sm" disabled={isSaving}>
+        <Button type="submit" size="sm" disabled={isSaving || readOnly}>
           {isSaving ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
           Save progress
         </Button>

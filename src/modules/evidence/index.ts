@@ -1,4 +1,5 @@
 import { auditService } from "@/modules/audit";
+import { prismaRemediationRepository } from "@/modules/remediation/infrastructure/prisma-remediation-repository";
 import { success, type Result } from "@/shared/core/result";
 import type { Paginated } from "@/shared/core/pagination";
 
@@ -14,6 +15,8 @@ const dependencies = {
   evidence: prismaEvidenceRepository,
   storage: localFileStorage,
   audit: auditService.record,
+  completeRemediationWhenClear: (actionId: string) =>
+    prismaRemediationRepository.completeWhenEvidenceCleared(actionId),
 };
 
 /** Composition root for the evidence module. */

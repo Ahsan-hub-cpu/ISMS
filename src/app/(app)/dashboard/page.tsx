@@ -17,26 +17,49 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { Progress, Stat } from "@/components/ui/stat";
+import { assessmentService } from "@/modules/assessment";
+import { requireSession } from "@/modules/auth/presentation/guards";
 import { complianceService } from "@/modules/compliance";
+import { evidenceService } from "@/modules/evidence";
 import { gapService } from "@/modules/gap";
 import { organizationService } from "@/modules/organization";
 import { registerService } from "@/modules/register";
 import { isOverdue, remediationService } from "@/modules/remediation";
 
+import { NextStepsCard, type NextStepItem } from "./next-steps-card";
+
 const formatDate = (value: Date | null) =>
   value ? new Date(value).toLocaleDateString("en-GB", { dateStyle: "medium" }) : "—";
 
 export default async function DashboardPage() {
+  const session = await requireSession();
   const organizationId = await organizationService.currentId();
 
-  const [profileResult, overviewResult, registerResult, gapsResult, actionsResult] =
-    await Promise.all([
-      organizationService.getProfile(),
-      complianceService.overview(organizationId),
-      registerService.summarise(organizationId),
-      gapService.list({ outstandingOnly: true, page: 1, pageSize: 5 }),
-      remediationService.list(organizationId, { overdueOnly: true, page: 1, pageSize: 5 }),
-    ]);
+  const [
+    profileResult,
+    overviewResult,
+    registerResult,
+    gapsResult,
+    actionsResult,
+    myActionsResult,
+    pendingEvidenceResult,
+    submittedAssessmentsResult,
+    awaitingReviewGapsResult,
+  ] = await Promise.all([
+    organizationService.getProfile(),
+    complianceService.overview(organizationId),
+    registerService.summarise(organizationId),
+    gapService.list({ outstandingOnly: true, page: 1, pageSize: 5 }),
+    remediationService.list(organizationId, { overdueOnly: true, page: 1, pageSize: 5 }),
+    remediationService.list(organizationId, {
+      ownerId: session.id,
+      page: 1,
+      pageSize: 50,
+    }),
+    evidenceService.list(organizationId, { reviewStatus: "PENDING", page: 1, pageSize: 1 }),
+    assessmentService.list(organizationId, { status: "SUBMITTED", page: 1, pageSize: 1 }),
+    gapService.list({ status: "AWAITING_REVIEW", page: 1, pageSize: 1 }),
+  ]);
 
   const profile = profileResult.ok ? profileResult.value : null;
   const overview = overviewResult.ok ? overviewResult.value : null;
@@ -47,6 +70,58 @@ export default async function DashboardPage() {
 
   const openGaps = topGaps?.total ?? 0;
   const overdueCount = overdueActions?.total ?? 0;
+
+  const ownedOpenCount = myActionsResult.ok
+    ? myActionsResult.value.items.filter(
+        (action) => action.status === "OPEN" || action.status === "IN_PROGRESS",
+      ).length
+    : 0;
+  const pendingEvidenceCount = pendingEvidenceResult.ok ? pendingEvidenceResult.value.total : 0;
+  const submittedCount = submittedAssessmentsResult.ok
+    ? submittedAssessmentsResult.value.total
+    : 0;
+  const awaitingReviewCount = awaitingReviewGapsResult.ok
+    ? awaitingReviewGapsResult.value.total
+    : 0;
+
+  const nextSteps: NextStepItem[] = [
+    {
+      id: "my-remediation",
+      title: "Remediation assigned to you",
+      detail: "Update progress and upload evidence on the gap.",
+      href: "/remediation",
+      cta: "Open remediation",
+      permission: "remediation:update",
+      count: ownedOpenCount,
+    },
+    {
+      id: "pending-evidence",
+      title: "Evidence waiting for review",
+      detail: "Accept or reject uploads before a gap can close.",
+      href: "/evidence?reviewStatus=PENDING",
+      cta: "Review evidence",
+      permission: "evidence:review",
+      count: pendingEvidenceCount,
+    },
+    {
+      id: "gaps-awaiting",
+      title: "Gaps awaiting review",
+      detail: "Owner says fixed — confirm Resolved when blockers are clear.",
+      href: "/gaps?status=AWAITING_REVIEW",
+      cta: "Open gaps",
+      permission: "gaps:manage",
+      count: awaitingReviewCount,
+    },
+    {
+      id: "assessments-submitted",
+      title: "Assessments waiting for approval",
+      detail: "Stamp Approve when the assessor has submitted.",
+      href: "/assessments?status=SUBMITTED",
+      cta: "Open assessments",
+      permission: "assessments:approve",
+      count: submittedCount,
+    },
+  ];
 
   return (
     <>
@@ -66,6 +141,8 @@ export default async function DashboardPage() {
           ) : null
         }
       />
+
+      <NextStepsCard user={session} items={nextSteps} />
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Stat

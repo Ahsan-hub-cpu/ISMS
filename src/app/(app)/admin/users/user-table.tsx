@@ -7,14 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/input";
 import { Table, TD, TH, THead, TR } from "@/components/ui/table";
-import { ROLE_LABELS, USER_ROLES, type UserRole } from "@/modules/auth/domain/user";
 import type { ApiResponse } from "@/shared/api/http";
 
-import type { SiteOption, UserRow } from "./types";
+import type { RoleOption, SiteOption, UserRow } from "./types";
 
 interface UserTableProps {
   users: UserRow[];
   sites: SiteOption[];
+  roles: RoleOption[];
   canManage: boolean;
   currentUserId: string;
 }
@@ -22,7 +22,7 @@ interface UserTableProps {
 const formatLastLogin = (value: string | null) =>
   value ? new Date(value).toLocaleString("en-AU", { dateStyle: "medium", timeStyle: "short" }) : "Never";
 
-export const UserTable = ({ users, sites, canManage, currentUserId }: UserTableProps) => {
+export const UserTable = ({ users, sites, roles, canManage, currentUserId }: UserTableProps) => {
   const router = useRouter();
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -94,21 +94,19 @@ export const UserTable = ({ users, sites, canManage, currentUserId }: UserTableP
                   {canManage ? (
                     <Select
                       aria-label={`Role for ${user.fullName}`}
-                      value={user.role}
+                      value={user.roleId}
                       disabled={isPending}
-                      onChange={(event) =>
-                        applyChange(user.id, { role: event.target.value as UserRole })
-                      }
+                      onChange={(event) => applyChange(user.id, { roleId: event.target.value })}
                       className="h-9 w-56"
                     >
-                      {USER_ROLES.map((role) => (
-                        <option key={role} value={role}>
-                          {ROLE_LABELS[role]}
+                      {roles.map((role) => (
+                        <option key={role.id} value={role.id}>
+                          {role.name}
                         </option>
                       ))}
                     </Select>
                   ) : (
-                    <span className="text-sm">{ROLE_LABELS[user.role]}</span>
+                    <span className="text-sm">{user.roleName}</span>
                   )}
                 </TD>
 

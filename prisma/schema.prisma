@@ -55,13 +55,33 @@ model Site {
 // Module 1: Authentication & role-based access control
 // ---------------------------------------------------------------------------
 
-/// Roles defined in the project proposal. Permissions are derived from the role
-/// in the domain layer, so the database only stores the role itself.
-enum UserRole {
-  ADMINISTRATOR
-  ASSESSOR
-  CONTROL_OWNER
-  VIEWER
+/// A named access profile. System roles are seeded; admins can add custom ones
+/// and attach any combination of application permissions.
+model Role {
+  id          String   @id @default(cuid())
+  code        String   @unique @db.VarChar(64)
+  name        String
+  description String?
+  /// Seeded roles cannot be deleted; their permissions remain editable.
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  permissions RolePermission[]
+  users       User[]
+
+  @@map("roles")
+}
+
+model RolePermission {
+  roleId     String
+  permission String @db.VarChar(64)
+
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permission])
+  @@index([permission])
+  @@map("role_permissions")
 }
 
 model User {
@@ -70,13 +90,14 @@ model User {
   fullName     String
   jobTitle     String?
   passwordHash String
-  role         UserRole  @default(VIEWER)
+  roleId       String
   isActive     Boolean   @default(true)
   siteId       String?
   lastLoginAt  DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
+  role Role  @relation(fields: [roleId], references: [id], onDelete: Restrict)
   site Site? @relation(fields: [siteId], references: [id], onDelete: SetNull)
 
   ownedRegisterEntries RegisterEntry[]      @relation("RegisterOwner")
@@ -91,8 +112,9 @@ model User {
   createdRemediations  RemediationAction[]  @relation("RemediationCreator")
   remediationComments  RemediationComment[]
   auditEntries         AuditLogEntry[]
+  notifications        Notification[]
 
-  @@index([role])
+  @@index([roleId])
   @@index([siteId])
   @@map("users")
 }
@@ -530,4 +552,23 @@ model AuditLogEntry {
   @@index([createdAt])
   @@index([entityType, entityId])
   @@map("audit_log_entries")
+}
+
+// ---------------------------------------------------------------------------
+// In-app work queue (who should act next)
+// ---------------------------------------------------------------------------
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  title     String
+  body      String
+  href      String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+  @@map("notifications")
 }

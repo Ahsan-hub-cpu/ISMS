@@ -20,7 +20,7 @@ export const requireSession = async (): Promise<SessionUser> => {
 
 export const requirePermission = async (permission: Permission): Promise<SessionUser> => {
   const session = await requireSession();
-  if (!can(session.role, permission)) {
+  if (!can(session, permission)) {
     throw new ForbiddenError("Your role does not allow this action.");
   }
   return session;

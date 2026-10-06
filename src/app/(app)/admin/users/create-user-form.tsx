@@ -8,24 +8,31 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
-import { ROLE_LABELS, USER_ROLES } from "@/modules/auth/domain/user";
 import { postJson, type ApiFailure } from "@/shared/api/client";
 
-import type { SiteOption } from "./types";
+import type { RoleOption, SiteOption } from "./types";
 
-const EMPTY_FORM = {
+const emptyForm = (defaultRoleId: string) => ({
   fullName: "",
   email: "",
   jobTitle: "",
   password: "",
-  role: "VIEWER" as (typeof USER_ROLES)[number],
+  roleId: defaultRoleId,
   siteId: "",
-};
+});
 
-export const CreateUserForm = ({ sites }: { sites: SiteOption[] }) => {
+export const CreateUserForm = ({
+  sites,
+  roles,
+}: {
+  sites: SiteOption[];
+  roles: RoleOption[];
+}) => {
   const router = useRouter();
+  const defaultRoleId =
+    roles.find((role) => role.code === "CONTROL_OWNER")?.id ?? roles[0]?.id ?? "";
   const [isOpen, setIsOpen] = useState(false);
-  const [form, setForm] = useState(EMPTY_FORM);
+  const [form, setForm] = useState(() => emptyForm(defaultRoleId));
   const [failure, setFailure] = useState<ApiFailure | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,7 +40,7 @@ export const CreateUserForm = ({ sites }: { sites: SiteOption[] }) => {
   const errorFor = (field: string) =>
     failure?.issues.find((issue) => issue.field === field)?.message;
 
-  const update = (field: keyof typeof EMPTY_FORM) => (value: string) =>
+  const update = (field: keyof ReturnType<typeof emptyForm>) => (value: string) =>
     setForm((current) => ({ ...current, [field]: value }));
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -55,7 +62,7 @@ export const CreateUserForm = ({ sites }: { sites: SiteOption[] }) => {
       return;
     }
 
-    setForm(EMPTY_FORM);
+    setForm(emptyForm(defaultRoleId));
     setMessage(`Account created for ${form.email}.`);
     setIsOpen(false);
     router.refresh();
@@ -63,7 +70,7 @@ export const CreateUserForm = ({ sites }: { sites: SiteOption[] }) => {
 
   return (
     <>
-      <Button onClick={() => setIsOpen(true)}>
+      <Button onClick={() => setIsOpen(true)} disabled={roles.length === 0}>
         <UserPlus className="size-4" aria-hidden />
         Add account
       </Button>
@@ -92,9 +99,7 @@ export const CreateUserForm = ({ sites }: { sites: SiteOption[] }) => {
       >
         <form id="create-user" onSubmit={handleSubmit} className="space-y-4" noValidate>
           {message ? <p className="text-sm text-emerald-700 dark:text-emerald-400">{message}</p> : null}
-          {failure ? (
-            <Alert>{failure.message}</Alert>
-          ) : null}
+          {failure ? <Alert>{failure.message}</Alert> : null}
 
           <Field label="Full name" htmlFor="fullName" error={errorFor("fullName")}>
             <Input
@@ -134,15 +139,15 @@ export const CreateUserForm = ({ sites }: { sites: SiteOption[] }) => {
           </Field>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Role" htmlFor="role" error={errorFor("role")}>
+            <Field label="Role" htmlFor="roleId" error={errorFor("roleId")}>
               <Select
-                id="role"
-                value={form.role}
-                onChange={(event) => update("role")(event.target.value)}
+                id="roleId"
+                value={form.roleId}
+                onChange={(event) => update("roleId")(event.target.value)}
               >
-                {USER_ROLES.map((role) => (
-                  <option key={role} value={role}>
-                    {ROLE_LABELS[role]}
+                {roles.map((role) => (
+                  <option key={role.id} value={role.id}>
+                    {role.name}
                   </option>
                 ))}
               </Select>

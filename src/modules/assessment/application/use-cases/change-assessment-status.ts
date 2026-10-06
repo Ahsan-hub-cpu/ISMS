@@ -1,4 +1,5 @@
 import type { AuditDraft } from "@/modules/audit";
+import { notifyUsers, userIdsWithPermission } from "@/modules/notifications";
 import { ConflictError, NotFoundError } from "@/shared/core/errors";
 import { failure, success, type Result } from "@/shared/core/result";
 
@@ -16,7 +17,6 @@ interface Command {
   readonly target: Extract<AssessmentStatus, "SUBMITTED" | "APPROVED">;
 }
 
-/** Only these moves are allowed, which keeps the approval trail meaningful. */
 const ALLOWED_FROM: Record<Command["target"], readonly AssessmentStatus[]> = {
   SUBMITTED: ["DRAFT", "IN_PROGRESS"],
   APPROVED: ["SUBMITTED"],
@@ -60,6 +60,20 @@ export const changeAssessmentStatus =
       entityId: assessmentId,
       summary: `${existing.reference} ${target === "APPROVED" ? "approved" : "submitted for approval"}`,
     });
+
+    if (target === "SUBMITTED") {
+      const approverIds = await userIdsWithPermission("assessments:approve", {
+        excludeUserId: actor.id,
+      });
+      await notifyUsers(
+        approverIds.map((userId) => ({
+          userId,
+          title: "Your turn — approve assessment",
+          body: `${actor.fullName} submitted ${existing.reference} (${existing.title}). Review and Approve.`,
+          href: `/assessments/${assessmentId}`,
+        })),
+      );
+    }
 
     return success(updated);
   };

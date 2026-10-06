@@ -44,12 +44,14 @@ export default async function AssessmentsPage({
   const frameworks = frameworksResult.ok ? frameworksResult.value : [];
   const assessors = usersResult.ok
     ? usersResult.value
-        .filter((user) => user.isActive && can(user.role, "assessments:conduct"))
+        .filter((user) => user.isActive && user.roleCode === "ASSESSOR")
         .map((user) => ({ id: user.id, name: user.fullName }))
     : [];
 
-  const canConduct = can(session.role, "assessments:conduct");
+  const canConduct = can(session, "assessments:conduct");
   const hrefWith = hrefBuilder("/assessments", rawParams);
+  const defaultAssessorId =
+    assessors.find((assessor) => assessor.id === session.id)?.id ?? assessors[0]?.id ?? "";
 
   return (
     <>
@@ -65,7 +67,7 @@ export default async function AssessmentsPage({
                 name: framework.name,
               }))}
               assessors={assessors}
-              defaultAssessorId={session.id}
+              defaultAssessorId={defaultAssessorId}
             />
           ) : null
         }

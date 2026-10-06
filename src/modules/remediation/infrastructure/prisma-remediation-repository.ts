@@ -125,6 +125,28 @@ export const prismaRemediationRepository: RemediationRepository = {
     });
   },
 
+  async completeWhenEvidenceCleared(actionId) {
+    const pending = await prisma.evidenceLink.count({
+      where: { remediationId: actionId, evidence: { reviewStatus: "PENDING" } },
+    });
+    if (pending > 0) return false;
+
+    const existing = await prisma.remediationAction.findUnique({
+      where: { id: actionId },
+      select: { status: true },
+    });
+    if (!existing) return false;
+    if (existing.status === "COMPLETED" || existing.status === "CANCELLED") return false;
+    if (existing.status !== "IN_REVIEW") return false;
+
+    await prisma.remediationAction.update({
+      where: { id: actionId },
+      data: { status: "COMPLETED", progressPercent: 100, completedAt: new Date() },
+    });
+
+    return true;
+  },
+
   async list(organizationId, query) {
     const where = buildWhere(organizationId, query);
 

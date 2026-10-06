@@ -3,18 +3,18 @@
 import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import type { UserRole } from "@/modules/auth/domain/user";
+import type { Permission } from "@/modules/auth/domain/permissions";
 
 import { SidebarBrand } from "./sidebar-brand";
 import { SidebarNav } from "./sidebar-nav";
 
 interface MobileNavProps {
-  role: UserRole;
+  permissions: readonly Permission[];
   organizationShortName: string;
 }
 
 /** Drawer version of the sidebar; the desktop aside is hidden below `lg`. */
-export const MobileNav = ({ role, organizationShortName }: MobileNavProps) => {
+export const MobileNav = ({ permissions, organizationShortName }: MobileNavProps) => {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -73,7 +73,7 @@ export const MobileNav = ({ role, organizationShortName }: MobileNavProps) => {
               organizationShortName={organizationShortName}
               onNavigate={() => setOpen(false)}
             />
-            <SidebarNav role={role} onNavigate={() => setOpen(false)} />
+            <SidebarNav permissions={permissions} onNavigate={() => setOpen(false)} />
           </div>
         </div>
       ) : null}

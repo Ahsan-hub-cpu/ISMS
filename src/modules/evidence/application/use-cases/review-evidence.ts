@@ -9,6 +9,8 @@ import type { ReviewEvidenceInput } from "../schemas";
 interface Dependencies {
   readonly evidence: EvidenceRepository;
   readonly audit: (draft: AuditDraft) => Promise<void>;
+  /** Completes linked remediation actions once no pending evidence remains. */
+  readonly completeRemediationWhenClear: (actionId: string) => Promise<boolean>;
 }
 
 interface Command {
@@ -18,14 +20,13 @@ interface Command {
 }
 
 export const reviewEvidence =
-  ({ evidence, audit }: Dependencies) =>
+  ({ evidence, audit, completeRemediationWhenClear }: Dependencies) =>
   async ({ actor, evidenceId, input }: Command): Promise<Result<Evidence>> => {
     const existing = await evidence.findById(evidenceId);
     if (!existing) {
       return failure(new NotFoundError("Evidence", evidenceId));
     }
 
-    // A rejection has to say what was wrong, otherwise the uploader cannot act on it.
     if (input.reviewStatus === "REJECTED" && !input.reviewNote?.trim()) {
       return failure(
         new ValidationError("Explain why the evidence was rejected.", [
@@ -48,6 +49,29 @@ export const reviewEvidence =
       entityId: evidenceId,
       summary: `Evidence "${existing.title}" ${input.reviewStatus.toLowerCase()}`,
     });
+
+    if (input.reviewStatus === "ACCEPTED") {
+      const remediationIds = [
+        ...new Set(
+          updated.links
+            .map((link) => link.remediationId)
+            .filter((id): id is string => Boolean(id)),
+        ),
+      ];
+
+      for (const actionId of remediationIds) {
+        const completed = await completeRemediationWhenClear(actionId);
+        if (completed) {
+          await audit({
+            actor,
+            action: "UPDATE",
+            entityType: "RemediationAction",
+            entityId: actionId,
+            summary: `Remediation marked completed after evidence "${existing.title}" was accepted`,
+          });
+        }
+      }
+    }
 
     return success(updated);
   };

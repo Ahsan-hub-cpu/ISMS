@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, RotateCcw } from "lucide-react";
+import { CheckCircle2, Loader2, RotateCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
@@ -25,7 +25,12 @@ export const GapDecisionForm = ({
 }) => {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
+  const [isResolving, setIsResolving] = useState(false);
   const [failure, setFailure] = useState<ApiFailure | null>(null);
+
+  const closed = gap.status === "RESOLVED" || gap.status === "RISK_ACCEPTED";
+  const canResolveNow =
+    gap.status === "AWAITING_REVIEW" && closureBlockers.length === 0 && !closed;
 
   const [form, setForm] = useState({
     description: gap.description,
@@ -41,26 +46,75 @@ export const GapDecisionForm = ({
   // the API checks them again on every request.
   const allowedStatuses = [gap.status, ...GAP_TRANSITIONS[gap.status]];
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const save = async (payload: typeof form) => {
     setFailure(null);
-    setIsSaving(true);
-
-    const outcome = await patchJson(`/api/gaps/${gap.id}`, form);
-    setIsSaving(false);
-
+    const outcome = await patchJson(`/api/gaps/${gap.id}`, payload);
     if (!outcome.ok) {
       setFailure(outcome);
-      return;
+      return false;
     }
-
     router.refresh();
+    return true;
   };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (closed) return;
+    setIsSaving(true);
+    await save(form);
+    setIsSaving(false);
+  };
+
+  const handleResolve = async () => {
+    if (!canResolveNow) return;
+    setIsResolving(true);
+    setForm((current) => ({ ...current, status: "RESOLVED" }));
+    await save({ ...form, status: "RESOLVED" });
+    setIsResolving(false);
+  };
+
+  if (closed) {
+    return (
+      <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
+        <p className="font-medium">
+          {gap.status === "RESOLVED"
+            ? "Gap resolved — decision is locked."
+            : "Risk accepted — decision is locked."}
+        </p>
+        <p className="mt-1 text-xs opacity-90">
+          This gap is closed. Further changes require reopening from an allowed transition.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-      {failure ? (
-        <Alert>{failure.message}</Alert>
+      {failure ? <Alert>{failure.message}</Alert> : null}
+
+      {canResolveNow ? (
+        <div className="space-y-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 dark:border-emerald-900 dark:bg-emerald-950">
+          <p className="text-sm font-medium text-emerald-900 dark:text-emerald-100">
+            Ready to close. Remediation is done and evidence is accepted.
+          </p>
+          <p className="text-xs text-emerald-800 dark:text-emerald-200">
+            Click <strong>Mark as Resolved</strong> — the finding becomes Compliant and the
+            register becomes Implemented automatically. Both then lock for editing.
+          </p>
+          <Button
+            type="button"
+            size="sm"
+            disabled={isResolving || isSaving}
+            onClick={handleResolve}
+          >
+            {isResolving ? (
+              <Loader2 className="size-4 animate-spin" aria-hidden />
+            ) : (
+              <CheckCircle2 className="size-4" aria-hidden />
+            )}
+            Mark as Resolved
+          </Button>
+        </div>
       ) : null}
 
       <Field
@@ -171,19 +225,19 @@ export const GapDecisionForm = ({
             ))}
           </ul>
         </div>
-      ) : (
+      ) : gap.status !== "AWAITING_REVIEW" ? (
         <p className="text-xs text-content-muted">
-          Verification is complete, so this gap can be resolved.
+          Set status to <strong>Awaiting review</strong> first. Then you can mark the gap Resolved.
         </p>
-      )}
+      ) : null}
 
       <p className="text-xs text-content-muted">
-        Reassessing the control as compliant moves the gap to Awaiting review, never straight to
-        Resolved. Closing it is an assessor decision and is recorded in the audit log.
+        Closing a gap is an assessor decision and is recorded in the audit log. Risk accepted is
+        only for when management accepts the exposure instead of fixing it.
       </p>
 
-      <div className="flex justify-end">
-        <Button type="submit" size="sm" disabled={isSaving}>
+      <div className="flex justify-end gap-2">
+        <Button type="submit" size="sm" variant="secondary" disabled={isSaving || isResolving}>
           {isSaving ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
           Save decision
         </Button>

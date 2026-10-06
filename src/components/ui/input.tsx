@@ -12,19 +12,39 @@ const controlClass = cn(
   "disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:opacity-70",
 );
 
-export const Input = ({ className, ...props }: ComponentProps<"input">) => (
-  <input className={cn(controlClass, "h-10", className)} {...props} />
+/**
+ * Keep text-like inputs controlled for their whole life. Passing `value={undefined}`
+ * flips React between uncontrolled and controlled and surfaces a console error.
+ * File inputs stay unmanaged (browsers do not allow controlling their value).
+ */
+export const Input = ({ className, type, value, ...props }: ComponentProps<"input">) => (
+  <input
+    type={type}
+    className={cn(controlClass, type === "file" ? "h-auto" : "h-10", className)}
+    {...props}
+    {...(type === "file" ? {} : { value: value ?? "" })}
+  />
 );
 
-export const Select = ({ className, ...props }: ComponentProps<"select">) => (
-  <select className={cn(controlClass, "h-10 cursor-pointer pr-8", className)} {...props} />
+export const Select = ({ className, value, ...props }: ComponentProps<"select">) => (
+  <select
+    className={cn(controlClass, "h-10 cursor-pointer pr-8", className)}
+    {...props}
+    value={value ?? ""}
+  />
 );
 
-export const Textarea = ({ className, rows = 4, ...props }: ComponentProps<"textarea">) => (
+export const Textarea = ({
+  className,
+  rows = 4,
+  value,
+  ...props
+}: ComponentProps<"textarea">) => (
   <textarea
     rows={rows}
     className={cn(controlClass, "resize-y py-2.5 leading-relaxed", className)}
     {...props}
+    value={value ?? ""}
   />
 );
 

@@ -1,5 +1,6 @@
 import type { AuditDraft } from "@/modules/audit";
-import { NotFoundError, ValidationError } from "@/shared/core/errors";
+import { notifyUsers, userIdsWithPermission } from "@/modules/notifications";
+import { ConflictError, NotFoundError, ValidationError } from "@/shared/core/errors";
 import { failure, success, type Result } from "@/shared/core/result";
 
 import type { RegisterEntry } from "../../domain/entities";
@@ -25,22 +26,24 @@ export const updateRegisterEntry =
       return failure(new NotFoundError("Register entry", entryId));
     }
 
+    if (existing.closureLocked) {
+      return failure(
+        new ConflictError(
+          `${existing.controlCode} is locked because its gap was resolved. Reopen the gap if the control must change again.`,
+        ),
+      );
+    }
+
     const applicability = changes.applicability ?? existing.applicability;
     const returningToScope =
       applicability === "APPLICABLE" && existing.applicability === "NOT_APPLICABLE";
 
-    // A justification says why a control is excluded, so it is meaningless once
-    // the control is back in scope. Dropping it stops a stale reason lingering
-    // on the statement of applicability, and stops it satisfying the rule below
-    // the next time someone tries to exclude the control.
     const justification = returningToScope
       ? null
       : changes.justification !== undefined
         ? changes.justification
         : existing.justification;
 
-    // Excluding a control from scope must always be defensible, which is what an
-    // auditor looks for in a statement of applicability.
     if (applicability === "NOT_APPLICABLE" && !justification?.trim()) {
       return failure(
         new ValidationError("A justification is required when a control is not applicable.", [
@@ -52,7 +55,6 @@ export const updateRegisterEntry =
     const updated = await register.update(entryId, {
       ...changes,
       ...(returningToScope ? { justification: null } : {}),
-      // An excluded control cannot claim implementation progress.
       ...(applicability === "NOT_APPLICABLE" ? { implementationStatus: "NOT_IMPLEMENTED" } : {}),
     });
 
@@ -66,6 +68,32 @@ export const updateRegisterEntry =
           ? `${updated.controlCode} marked ${applicability === "NOT_APPLICABLE" ? "not applicable" : "applicable"}${justification ? `: ${justification}` : ""}`
           : `Updated register entry for ${updated.controlCode} ${updated.controlTitle}`,
     });
+
+    if (changes.ownerId && changes.ownerId !== existing.ownerId) {
+      const drafts = [];
+      if (updated.ownerId) {
+        drafts.push({
+          userId: updated.ownerId,
+          title: "Control assigned to you",
+          body: `${updated.controlCode} ${updated.controlTitle} is now yours to implement and evidence.`,
+          href: "/register",
+        });
+      }
+
+      const assessorIds = await userIdsWithPermission("assessments:conduct", {
+        excludeUserId: actor.id,
+      });
+      for (const userId of assessorIds) {
+        drafts.push({
+          userId,
+          title: "Register ready — start / continue assessment",
+          body: `${actor.fullName} set ${updated.ownerName ?? "an owner"} on ${updated.controlCode}. Record findings in an assessment.`,
+          href: "/assessments",
+        });
+      }
+
+      await notifyUsers(drafts);
+    }
 
     return success(updated);
   };

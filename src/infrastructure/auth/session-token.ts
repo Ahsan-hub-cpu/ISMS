@@ -1,6 +1,7 @@
 import { SignJWT, jwtVerify } from "jose";
 
-import { USER_ROLES, type SessionUser, type UserRole } from "@/modules/auth/domain/user";
+import { isPermission, type Permission } from "@/modules/auth/domain/permissions";
+import type { SessionUser } from "@/modules/auth/domain/user";
 
 export const SESSION_COOKIE_NAME = "isms_session";
 export const SESSION_MAX_AGE_SECONDS = 8 * 60 * 60;
@@ -17,11 +18,18 @@ const secretKey = (): Uint8Array => {
   return new TextEncoder().encode(secret);
 };
 
-const isUserRole = (value: unknown): value is UserRole =>
-  typeof value === "string" && (USER_ROLES as readonly string[]).includes(value);
+const asStringArray = (value: unknown): string[] =>
+  Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
 
 export const createSessionToken = (user: SessionUser): Promise<string> =>
-  new SignJWT({ email: user.email, fullName: user.fullName, role: user.role })
+  new SignJWT({
+    email: user.email,
+    fullName: user.fullName,
+    roleId: user.roleId,
+    roleCode: user.roleCode,
+    roleName: user.roleName,
+    permissions: user.permissions,
+  })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(user.id)
     .setIssuer(ISSUER)
@@ -36,13 +44,20 @@ export const readSessionToken = async (token: string | undefined): Promise<Sessi
   try {
     const { payload } = await jwtVerify(token, secretKey(), { issuer: ISSUER });
 
-    if (!payload.sub || !isUserRole(payload.role)) return null;
+    if (!payload.sub || typeof payload.roleId !== "string" || typeof payload.roleCode !== "string") {
+      return null;
+    }
+
+    const permissions = asStringArray(payload.permissions).filter(isPermission) as Permission[];
 
     return {
       id: payload.sub,
       email: String(payload.email ?? ""),
       fullName: String(payload.fullName ?? ""),
-      role: payload.role,
+      roleId: payload.roleId,
+      roleCode: payload.roleCode,
+      roleName: String(payload.roleName ?? payload.roleCode),
+      permissions,
     };
   } catch {
     return null;

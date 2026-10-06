@@ -1,4 +1,5 @@
 import type { AuditDraft } from "@/modules/audit";
+import { notifyUsers, userIdsWithPermission } from "@/modules/notifications";
 import { ValidationError } from "@/shared/core/errors";
 import { failure, success, type Result } from "@/shared/core/result";
 
@@ -80,6 +81,18 @@ export const addEvidence =
       entityId: record.id,
       summary: `Evidence added: ${record.title}`,
     });
+
+    const reviewerIds = await userIdsWithPermission("evidence:review", {
+      excludeUserId: actor.id,
+    });
+    await notifyUsers(
+      reviewerIds.map((userId) => ({
+        userId,
+        title: "Your turn — review evidence",
+        body: `${actor.fullName} uploaded “${record.title}”. Accept or reject it.`,
+        href: "/evidence?reviewStatus=PENDING",
+      })),
+    );
 
     return success(record);
   };

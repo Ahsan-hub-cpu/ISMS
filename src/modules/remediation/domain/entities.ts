@@ -18,11 +18,20 @@ export const PRIORITY_LABELS: Record<Priority, string> = {
 };
 
 export const REMEDIATION_STATUS_LABELS: Record<RemediationStatus, string> = {
-  OPEN: "Open",
-  IN_PROGRESS: "In progress",
-  IN_REVIEW: "In review",
-  COMPLETED: "Completed",
+  OPEN: "Open — not started",
+  IN_PROGRESS: "In progress — owner working",
+  IN_REVIEW: "Waiting for approval — assessor",
+  COMPLETED: "Completed — done",
   CANCELLED: "Cancelled",
+};
+
+export const REMEDIATION_STATUS_HINTS: Record<RemediationStatus, string> = {
+  OPEN: "Owner has not started the fix yet.",
+  IN_PROGRESS: "Owner is working. Progress % can move; at 100% it goes to Waiting for approval.",
+  IN_REVIEW:
+    "Waiting for approval. Owner finished at 100%. Assessor Accepts evidence → Completed (then close the gap).",
+  COMPLETED: "Assessor accepted the fix. Editing is locked. Close the linked gap next.",
+  CANCELLED: "This action will not be done.",
 };
 
 export interface RemediationComment {

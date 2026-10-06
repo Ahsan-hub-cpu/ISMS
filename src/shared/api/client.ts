@@ -57,3 +57,8 @@ export const patchJson = <T>(url: string, body: unknown) =>
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
+
+export const deleteJson = <T>(url: string) =>
+  apiRequest<T>(url, {
+    method: "DELETE",
+  });

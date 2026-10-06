@@ -1,4 +1,4 @@
-import type { UserRole } from "@/modules/auth/domain/user";
+import type { RoleSummary } from "@/modules/auth/domain/user";
 
 /** View model passed to client components: only serialisable values. */
 export interface UserRow {
@@ -6,7 +6,8 @@ export interface UserRow {
   email: string;
   fullName: string;
   jobTitle: string | null;
-  role: UserRole;
+  roleId: string;
+  roleName: string;
   isActive: boolean;
   siteId: string | null;
   lastLoginAt: string | null;
@@ -16,3 +17,5 @@ export interface SiteOption {
   id: string;
   name: string;
 }
+
+export type RoleOption = Pick<RoleSummary, "id" | "code" | "name" | "description">;

@@ -9,12 +9,14 @@ import { updateGap } from "./application/use-cases/update-gap";
 import type { GapQuery } from "./application/schemas";
 import { closureBlockers, type Gap, type GapSummary } from "./domain/entities";
 import { prismaGapRepository } from "./infrastructure/prisma-gap-repository";
+import { prismaResolutionPropagator } from "./infrastructure/prisma-resolution-propagator";
 
 const dependencies = {
   gaps: prismaGapRepository,
   planner: remediationPlanner,
   audit: auditService.record,
   implementationStatusFor: registerService.implementationStatusFor,
+  propagator: prismaResolutionPropagator,
 };
 
 /** Composition root for the gap register. */

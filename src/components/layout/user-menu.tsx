@@ -4,7 +4,7 @@ import { ChevronDown, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-import { ROLE_LABELS, initialsOf, type SessionUser } from "@/modules/auth/domain/user";
+import { initialsOf, type SessionUser } from "@/modules/auth/domain/user";
 
 export const UserMenu = ({ user }: { user: SessionUser }) => {
   const router = useRouter();
@@ -59,7 +59,7 @@ export const UserMenu = ({ user }: { user: SessionUser }) => {
             {user.fullName}
           </span>
           <span className="block max-w-[10rem] truncate text-[0.6875rem] text-content-subtle">
-            {ROLE_LABELS[user.role]}
+            {user.roleName}
           </span>
         </span>
 
@@ -75,7 +75,7 @@ export const UserMenu = ({ user }: { user: SessionUser }) => {
             <p className="truncate text-sm font-semibold text-content">{user.fullName}</p>
             <p className="truncate text-xs text-content-muted">{user.email}</p>
             <p className="mt-2 inline-flex rounded-full bg-brand-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-brand-800 dark:bg-brand-950/70 dark:text-brand-200">
-              {ROLE_LABELS[user.role]}
+              {user.roleName}
             </p>
           </div>
 

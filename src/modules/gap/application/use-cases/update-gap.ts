@@ -4,11 +4,13 @@ import { failure, success, type Result } from "@/shared/core/result";
 
 import { canTransition, closureBlockers, GAP_STATUS_LABELS, type Gap } from "../../domain/entities";
 import type { GapRepository } from "../ports/gap-repository";
+import type { ResolutionPropagator } from "../ports/resolution-propagator";
 import type { UpdateGapInput } from "../schemas";
 
 interface Dependencies {
   readonly gaps: GapRepository;
   readonly audit: (draft: AuditDraft) => Promise<void>;
+  readonly propagator: ResolutionPropagator;
 }
 
 interface Command {
@@ -18,7 +20,7 @@ interface Command {
 }
 
 export const updateGap =
-  ({ gaps, audit }: Dependencies) =>
+  ({ gaps, audit, propagator }: Dependencies) =>
   async ({ actor, gapId, changes }: Command): Promise<Result<Gap>> => {
     const existing = await gaps.findById(gapId);
     if (!existing) {
@@ -59,6 +61,27 @@ export const updateGap =
           changes.status === "RESOLVED"
             ? `${existing.reference} verified and closed by ${actor.fullName}`
             : `${existing.reference} moved from ${existing.status} to ${changes.status}`,
+      });
+    }
+
+    // Resolve once — finding becomes Compliant and register becomes Implemented.
+    if (changes.status === "RESOLVED" && existing.status !== "RESOLVED") {
+      await propagator.markFindingCompliant({
+        assessmentItemId: existing.assessmentItemId,
+        actorId: actor.id,
+        gapReference: existing.reference,
+      });
+      await propagator.markRegisterImplemented({
+        assessmentId: existing.assessmentId,
+        controlId: existing.controlId,
+        gapReference: existing.reference,
+      });
+      await audit({
+        actor,
+        action: "UPDATE",
+        entityType: "Gap",
+        entityId: gapId,
+        summary: `${existing.reference} resolution propagated: finding set Compliant, register set Implemented`,
       });
     }
 

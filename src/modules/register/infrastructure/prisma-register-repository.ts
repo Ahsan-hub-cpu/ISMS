@@ -22,7 +22,9 @@ const withRelations = {
 
 type RegisterRow = Prisma.RegisterEntryGetPayload<{ include: typeof withRelations }>;
 
-const toEntry = (row: RegisterRow): RegisterEntry => ({
+const OUTSTANDING_GAP = ["OPEN", "IN_PROGRESS", "AWAITING_REVIEW"] as const;
+
+const toEntry = (row: RegisterRow, closureLocked = false): RegisterEntry => ({
   id: row.id,
   organizationId: row.organizationId,
   controlId: row.controlId,
@@ -40,7 +42,41 @@ const toEntry = (row: RegisterRow): RegisterEntry => ({
   implementationNotes: row.implementationNotes,
   reviewDueAt: row.reviewDueAt,
   updatedAt: row.updatedAt,
+  closureLocked,
 });
+
+const closureLocksFor = async (
+  organizationId: string,
+  controlIds: readonly string[],
+): Promise<Set<string>> => {
+  if (controlIds.length === 0) return new Set();
+
+  const [resolved, outstanding] = await Promise.all([
+    prisma.gap.findMany({
+      where: {
+        controlId: { in: [...controlIds] },
+        status: "RESOLVED",
+        assessment: { organizationId },
+      },
+      select: { controlId: true },
+      distinct: ["controlId"],
+    }),
+    prisma.gap.findMany({
+      where: {
+        controlId: { in: [...controlIds] },
+        status: { in: [...OUTSTANDING_GAP] },
+        assessment: { organizationId },
+      },
+      select: { controlId: true },
+      distinct: ["controlId"],
+    }),
+  ]);
+
+  const outstandingIds = new Set(outstanding.map((row) => row.controlId));
+  return new Set(
+    resolved.map((row) => row.controlId).filter((controlId) => !outstandingIds.has(controlId)),
+  );
+};
 
 const buildWhere = (
   organizationId: string,
@@ -99,12 +135,23 @@ export const prismaRegisterRepository: RegisterRepository = {
       prisma.registerEntry.count({ where }),
     ]);
 
-    return paginate(rows.map(toEntry), total, query);
+    const locked = await closureLocksFor(
+      organizationId,
+      rows.map((row) => row.controlId),
+    );
+
+    return paginate(
+      rows.map((row) => toEntry(row, locked.has(row.controlId))),
+      total,
+      query,
+    );
   },
 
   async findById(id) {
     const row = await prisma.registerEntry.findUnique({ where: { id }, include: withRelations });
-    return row ? toEntry(row) : null;
+    if (!row) return null;
+    const locked = await closureLocksFor(row.organizationId, [row.controlId]);
+    return toEntry(row, locked.has(row.controlId));
   },
 
   async findByControl(organizationId, controlId) {
@@ -112,7 +159,9 @@ export const prismaRegisterRepository: RegisterRepository = {
       where: { organizationId_controlId: { organizationId, controlId } },
       include: withRelations,
     });
-    return row ? toEntry(row) : null;
+    if (!row) return null;
+    const locked = await closureLocksFor(organizationId, [controlId]);
+    return toEntry(row, locked.has(controlId));
   },
 
   async update(id, changes) {
@@ -121,7 +170,8 @@ export const prismaRegisterRepository: RegisterRepository = {
       data: toUpdateData(changes),
       include: withRelations,
     });
-    return toEntry(row);
+    const locked = await closureLocksFor(row.organizationId, [row.controlId]);
+    return toEntry(row, locked.has(row.controlId));
   },
 
   async summarise(organizationId) {

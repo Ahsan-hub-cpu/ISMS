@@ -11,6 +11,8 @@ import { Field, Select, Textarea } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import {
   COMPLIANCE_STATUS_LABELS,
+  isRegisterFindingMismatch,
+  suggestedFindingStatus,
   type AssessmentItem,
   type ComplianceStatus,
 } from "@/modules/assessment/domain/entities";
@@ -40,12 +42,19 @@ export const FindingForm = ({ item, readOnly }: FindingFormProps) => {
   const [isSaving, setIsSaving] = useState(false);
   const [failure, setFailure] = useState<ApiFailure | null>(null);
 
+  const lockedByGap =
+    item.gapStatus === "RESOLVED" || item.gapStatus === "RISK_ACCEPTED";
+  const effectivelyReadOnly = readOnly || lockedByGap;
+
   const [form, setForm] = useState<{
     status: AssessableStatus;
     currentPractice: string;
     rationale: string;
   }>({
-    status: item.status === "NOT_ASSESSED" ? "COMPLIANT" : item.status,
+    status:
+      item.status === "NOT_ASSESSED"
+        ? suggestedFindingStatus(item.registerImplementationStatus)
+        : item.status,
     currentPractice: item.currentPractice ?? "",
     rationale: item.rationale ?? "",
   });
@@ -53,12 +62,17 @@ export const FindingForm = ({ item, readOnly }: FindingFormProps) => {
   const open = () => {
     setFailure(null);
     setForm({
-      status: item.status === "NOT_ASSESSED" ? "COMPLIANT" : item.status,
+      status:
+        item.status === "NOT_ASSESSED"
+          ? suggestedFindingStatus(item.registerImplementationStatus)
+          : item.status,
       currentPractice: item.currentPractice ?? "",
       rationale: item.rationale ?? "",
     });
     setIsOpen(true);
   };
+
+  const mismatch = isRegisterFindingMismatch(item.registerImplementationStatus, form.status);
 
   const errorFor = (field: string) =>
     failure?.issues.find((issue) => issue.field === field)?.message;
@@ -105,9 +119,18 @@ export const FindingForm = ({ item, readOnly }: FindingFormProps) => {
             </span>
           ) : null}
           <ComplianceBadge status={item.status} />
-          <Button variant="secondary" size="sm" onClick={open}>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={open}
+            title={
+              lockedByGap
+                ? `Locked — ${item.gapReference ?? "gap"} is closed`
+                : undefined
+            }
+          >
             <Pencil className="size-3.5" aria-hidden />
-            {readOnly ? "View" : "Record"}
+            {effectivelyReadOnly ? "View" : "Record"}
           </Button>
         </span>
       </div>
@@ -119,7 +142,7 @@ export const FindingForm = ({ item, readOnly }: FindingFormProps) => {
         description={item.controlPurpose}
         size="lg"
         footer={
-          readOnly ? (
+          effectivelyReadOnly ? (
             <Button variant="secondary" onClick={() => setIsOpen(false)}>
               Close
             </Button>
@@ -136,8 +159,14 @@ export const FindingForm = ({ item, readOnly }: FindingFormProps) => {
           )
         }
       >
-        {readOnly ? (
+        {effectivelyReadOnly ? (
           <dl className="space-y-3 text-sm">
+            {lockedByGap ? (
+              <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
+                Locked because {item.gapReference ?? "the gap"} is closed. Finding and register were
+                updated automatically on resolve.
+              </p>
+            ) : null}
             <div>
               <dt className="text-xs font-semibold uppercase tracking-wide text-content-muted">
                 Finding
@@ -165,6 +194,24 @@ export const FindingForm = ({ item, readOnly }: FindingFormProps) => {
           <form id={`finding-${item.id}`} onSubmit={handleSubmit} className="space-y-4" noValidate>
             {failure ? (
               <Alert>{failure.message}</Alert>
+            ) : null}
+
+            {item.registerImplementationLabel ? (
+              <p className="rounded-xl border border-surface-border bg-surface-sunken/50 px-3 py-2 text-xs text-content-muted">
+                Control register says implementation is{" "}
+                <span className="font-semibold text-content">
+                  {item.registerImplementationLabel}
+                </span>
+                . The finding below should match what is actually operating.
+              </p>
+            ) : null}
+
+            {mismatch ? (
+              <Alert tone="warning">
+                Register is {item.registerImplementationLabel ?? "not live"}, but finding is
+                Compliant. Prefer Non-compliant / Partially compliant, or explain clearly in
+                rationale why practice is compliant despite the register.
+              </Alert>
             ) : null}
 
             <Field label="Finding" htmlFor={`status-${item.id}`} error={errorFor("status")}>

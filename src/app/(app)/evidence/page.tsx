@@ -55,7 +55,7 @@ export default async function EvidencePage({
 
   const summary = summaryResult.ok ? summaryResult.value : null;
   const evidence = evidenceResult.ok ? evidenceResult.value : null;
-  const canReview = can(session.role, "evidence:review");
+  const canReview = can(session, "evidence:review");
   const hrefWith = hrefBuilder("/evidence", rawParams);
 
   return (

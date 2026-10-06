@@ -39,6 +39,14 @@ export const recordFinding =
       );
     }
 
+    if (existing.gapStatus === "RESOLVED" || existing.gapStatus === "RISK_ACCEPTED") {
+      return failure(
+        new ConflictError(
+          `This finding is locked because ${existing.gapReference ?? "its gap"} is closed. Reopen the gap if the finding must change.`,
+        ),
+      );
+    }
+
     const item = await assessments.recordFinding(itemId, input, actor.id);
 
     await synchroniseGap({

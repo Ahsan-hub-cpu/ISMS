@@ -27,8 +27,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${body.variable} ${display.variable} h-full antialiased`}>
-      <body className="min-h-full font-sans">{children}</body>
+    <html
+      lang="en"
+      className={`${body.variable} ${display.variable} h-full antialiased`}
+      suppressHydrationWarning
+    >
+      {/* Extensions often mutate <body> attributes before React hydrates. */}
+      <body className="min-h-full font-sans" suppressHydrationWarning>
+        {children}
+      </body>
     </html>
   );
 }

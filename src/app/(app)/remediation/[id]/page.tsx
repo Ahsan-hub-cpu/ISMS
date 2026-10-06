@@ -21,6 +21,7 @@ import { requirePermission } from "@/modules/auth/presentation/guards";
 import { evidenceService } from "@/modules/evidence";
 import { organizationService } from "@/modules/organization";
 import { isOverdue, remediationService } from "@/modules/remediation";
+import { REMEDIATION_STATUS_HINTS } from "@/modules/remediation/domain/entities";
 
 import { EvidenceUploader } from "@/app/(app)/evidence/evidence-uploader";
 import { CommentForm } from "./comment-form";
@@ -52,13 +53,14 @@ export default async function RemediationDetailPage({
   ]);
 
   const evidence = evidenceResult.ok ? evidenceResult.value.items : [];
+  // Remediation owners are control owners — same segregation as the register.
   const owners = usersResult.ok
     ? usersResult.value
-        .filter((user) => user.isActive)
+        .filter((user) => user.isActive && user.roleCode === "CONTROL_OWNER")
         .map((user) => ({ id: user.id, name: user.fullName }))
     : [];
 
-  const canPlan = can(session.role, "remediation:manage");
+  const canPlan = can(session, "remediation:manage");
   const canUpdate = canPlan || action.ownerId === session.id;
 
   return (
@@ -76,6 +78,38 @@ export default async function RemediationDetailPage({
           </div>
         }
       />
+
+      <Card>
+        <CardHeader
+          icon={Info}
+          title="Where this action is"
+          description={REMEDIATION_STATUS_HINTS[action.status]}
+        />
+        <CardBody className="space-y-2 text-sm text-content-muted">
+          <p>
+            <span className="font-medium text-content">Progress {action.progressPercent}%.</span>{" "}
+            {action.status === "OPEN" || action.status === "IN_PROGRESS"
+              ? "Owner: attach evidence, update %, then set 100% → In review. 100% is blocked without evidence."
+              : null}
+            {action.status === "IN_REVIEW"
+              ? action.evidenceCount === 0
+                ? "Waiting for approval, but no evidence yet — owner should attach proof before the assessor can Accept."
+                : "Waiting for approval. Assessor: Accept evidence on the Evidence page — remediation then becomes Completed automatically."
+              : null}
+            {action.status === "COMPLETED"
+              ? "Completed and locked. Next: open the linked gap and Mark as Resolved."
+              : null}
+          </p>
+          {action.gapId ? (
+            <p>
+              Linked gap:{" "}
+              <Link href={`/gaps/${action.gapId}`} className="font-medium text-brand-700 hover:underline">
+                {action.gapReference ?? "Open gap"}
+              </Link>
+            </p>
+          ) : null}
+        </CardBody>
+      </Card>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_22rem]">
         <div className="space-y-4">
@@ -226,7 +260,9 @@ export default async function RemediationDetailPage({
                 </ul>
               )}
 
-              {can(session.role, "evidence:upload") ? (
+              {can(session, "evidence:upload") &&
+              action.status !== "COMPLETED" &&
+              action.status !== "CANCELLED" ? (
                 <EvidenceUploader target={{ remediationId: action.id }} compact />
               ) : null}
             </CardBody>

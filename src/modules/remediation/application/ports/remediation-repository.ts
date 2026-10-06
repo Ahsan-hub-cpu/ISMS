@@ -24,6 +24,11 @@ export interface RemediationRepository {
   countOpenByGap(gapId: string): Promise<number>;
   /** Evidence attached to the action that an assessor has not reviewed yet. */
   countPendingEvidence(actionId: string): Promise<number>;
+  /**
+   * When the last pending evidence on an in-review action is accepted, mark the
+   * action completed so Accept and Completed stay in sync for the assessor.
+   */
+  completeWhenEvidenceCleared(actionId: string): Promise<boolean>;
   list(organizationId: string, query: RemediationQuery): Promise<Paginated<RemediationAction>>;
   update(id: string, changes: UpdateRemediationInput, completedAt: Date | null): Promise<RemediationAction>;
   moveOpenActionsToReview(gapId: string): Promise<void>;
