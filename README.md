@@ -1,18 +1,339 @@
 # ISMS Gap Analysis & Compliance Tracking Platform
 
-A web application that supports an Information Security Management System (ISMS) gap analysis and
-ongoing compliance tracking for the Northern Rivers Local Health District project scenario.
+A web application for Information Security Management System (ISMS) gap analysis and ongoing
+compliance tracking (Northern Rivers Local Health District academic scenario).
 
-> Academic project scenario based on a supplied brief. It is not an official NRLHD system.
+> Academic project based on a supplied brief. It is not an official NRLHD system.
+
+**Stack:** Next.js 16 · React 19 · TypeScript · Tailwind CSS v4 · PostgreSQL 16 · Prisma · Zod
+
+**Repository:** https://github.com/Rana-1412/ISMS.git
+
+---
+
+## How to run this project (A → Z)
+
+Follow these steps on **your** computer after cloning. You do **not** need anyone else’s `.env`
+file. Passwords and secrets are never stored in Git.
+
+### 0. What you need
+
+| Tool | Version | Why |
+| ---- | ------- | --- |
+| Git | any recent | download the code |
+| Node.js | **20 or newer** | run `npm` and the Next.js app |
+| PostgreSQL | **16** recommended | store all application data |
+
+---
+
+### 1. Install Node.js
+
+1. Download **LTS** from https://nodejs.org/ (v20+).
+2. Install it. On Windows, keep **Add to PATH** checked.
+3. Open a **new** terminal and run:
+
+```bash
+node -v
+npm -v
+```
+
+Both must print a version number.
+
+---
+
+### 2. Install PostgreSQL and create an empty database
+
+Tables are **not** created by hand in SQL (except the empty database name). Prisma creates every
+table from migration files (Step 6).
+
+#### Windows (installer)
+
+1. Download: https://www.postgresql.org/download/windows/
+2. During setup, set a password for user `postgres` and keep port **5432**.
+3. In **Services**, confirm `postgresql-x64-…` is **Running**.
+4. Create an empty database:
+
+```sql
+CREATE DATABASE isms;
+```
+
+Or:
+
+```bash
+psql -U postgres -c "CREATE DATABASE isms;"
+```
+
+#### Docker (easiest if Docker Desktop is installed)
+
+```bash
+docker run --name isms-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=isms -p 5432:5432 -d postgres:16
+```
+
+This already creates database `isms` with user/password `postgres` / `postgres` (same as
+`.env.example`).
+
+```bash
+docker stop isms-postgres
+docker start isms-postgres
+```
+
+#### macOS (Homebrew)
+
+```bash
+brew install postgresql@16
+brew services start postgresql@16
+createdb isms
+```
+
+---
+
+### 3. Clone this repository
+
+```bash
+git clone https://github.com/Rana-1412/ISMS.git
+cd ISMS
+```
+
+---
+
+### 4. Install npm packages
+
+```bash
+npm install
+```
+
+This installs Next.js, React, Prisma, Zod, and other dependencies from `package-lock.json`.
+
+---
+
+### 5. Create your `.env` file
+
+`.env` is gitignored. Copy the example and edit it.
+
+**Windows PowerShell:**
+
+```powershell
+Copy-Item .env.example .env
+notepad .env
+```
+
+**macOS / Linux:**
+
+```bash
+cp .env.example .env
+nano .env
+```
+
+Required values:
+
+```env
+# USER / PASSWORD = your PostgreSQL login
+# Docker example above → postgres / postgres
+DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/isms?schema=public"
+
+# At least 32 characters. Generate with:
+#   node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+AUTH_SECRET="paste-your-generated-secret-here"
+
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+EVIDENCE_STORAGE_DIR="./storage/evidence"
+```
+
+Save the file.
+
+---
+
+### 6. Create all tables in PostgreSQL (Prisma migrations)
+
+The empty database `isms` has **no tables** yet. Prisma applies SQL from
+`prisma/migrations/` and creates every table, index, and foreign key.
+
+From the project folder run:
+
+```bash
+npm run db:generate
+npm run db:deploy
+```
+
+| Command | What it does |
+| ------- | ------------ |
+| `npm run db:generate` | Builds the Prisma Client used by the app |
+| `npm run db:deploy` | Runs **`prisma migrate deploy`** — applies all migration SQL files and **creates the tables** |
+
+If `db:deploy` is not available for any reason, the same thing is:
+
+```bash
+npx prisma generate
+npx prisma migrate deploy
+```
+
+#### What tables get created?
+
+Defined in `prisma/schema.prisma`. After a successful migrate, PostgreSQL contains:
+
+| Table (Prisma model) | Purpose |
+| -------------------- | ------- |
+| `Organization` | Organisation profile |
+| `Site` | Sites in scope |
+| `Role` | Roles (Administrator, Assessor, …) |
+| `RolePermission` | Permission codes per role |
+| `User` | Login accounts |
+| `Framework` | Framework catalogue (e.g. ISO 27001) |
+| `ControlTheme` | Control themes (A.5, A.6, …) |
+| `Control` | Individual controls |
+| `RegisterEntry` | Statement of applicability / register |
+| `Assessment` | Gap assessments |
+| `AssessmentItem` | Per-control findings |
+| `Gap` | Gaps raised from findings |
+| `Evidence` | Uploaded / linked evidence |
+| `EvidenceLink` | Links evidence to controls / gaps / actions |
+| `RemediationAction` | Corrective actions |
+| `RemediationComment` | Comments on actions |
+| `AuditLogEntry` | Append-only audit log |
+| `Notification` | In-app notifications |
+
+Migration history lives under `prisma/migrations/` (SQL files). You do **not** need to run those
+SQL files manually — `npm run db:deploy` runs them in order.
+
+#### Optional: browse the database
+
+```bash
+npm run db:studio
+```
+
+Opens Prisma Studio in the browser so you can see tables and rows.
+
+---
+
+### 7. Load demo / reference data (seed)
+
+Tables are still mostly empty. Seed fills organisation, sites, roles, demo users, and the
+ISO/IEC 27001:2022 Annex A catalogue.
+
+```bash
+npm run db:seed
+```
+
+This runs `tsx prisma/seed.ts`. It uses **upserts**, so you can run it more than once without
+duplicating users or controls. It does **not** invent fake assessments/gaps — those are created
+only when people use the app.
+
+---
+
+### 8. Start the application
+
+```bash
+npm run dev
+```
+
+Open **http://localhost:3000**
+
+Stop with `Ctrl + C`.
+
+Production-style run (optional):
+
+```bash
+npm run build
+npm run start
+```
+
+---
+
+### 9. Login (demo accounts)
+
+Created by `npm run db:seed`. Local use only.
+
+| Email | Password | Role |
+| ----- | -------- | ---- |
+| ahsan@nrlhd.health.nsw.gov.au | Administrator1 | Administrator |
+| ali@nrlhd.health.nsw.gov.au | Assessor12345 | Assessor |
+| imran@nrlhd.health.nsw.gov.au | Approver12345 | Approver |
+| hasnain@nrlhd.health.nsw.gov.au | Controlowner1 | Control Owner |
+
+---
+
+### Full command sequence (copy-paste)
+
+After Node.js + PostgreSQL are installed and database `isms` exists:
+
+```bash
+git clone https://github.com/Rana-1412/ISMS.git
+cd ISMS
+npm install
+cp .env.example .env
+# edit .env → DATABASE_URL and AUTH_SECRET
+npm run db:generate
+npm run db:deploy
+npm run db:seed
+npm run dev
+```
+
+**Windows PowerShell** for the env copy:
+
+```powershell
+Copy-Item .env.example .env
+# then edit .env, then:
+npm run db:generate
+npm run db:deploy
+npm run db:seed
+npm run dev
+```
+
+---
+
+### Checklist
+
+```text
+[ ] Node.js 20+                 →  node -v / npm -v
+[ ] PostgreSQL running          →  port 5432
+[ ] Empty DB created            →  CREATE DATABASE isms;  (or Docker)
+[ ] git clone + cd ISMS
+[ ] npm install
+[ ] .env from .env.example      →  DATABASE_URL + AUTH_SECRET (32+)
+[ ] npm run db:generate         →  Prisma Client
+[ ] npm run db:deploy           →  CREATES ALL TABLES
+[ ] npm run db:seed             →  demo users + ISO catalogue
+[ ] npm run dev                 →  http://localhost:3000
+[ ] Login with a demo account
+```
+
+### Common problems
+
+| Problem | Fix |
+| ------- | --- |
+| `node` / `npm` not found | Reinstall Node LTS; open a **new** terminal |
+| Cannot connect to database | Service/Docker running? Password in `DATABASE_URL` correct? Database `isms` exists? |
+| `AUTH_SECRET` error | Must be **32+** characters |
+| `db:deploy` / migrate fails | Fix `DATABASE_URL`, ensure DB exists, run again |
+| Port 3000 in use | `npx next dev -p 3001` |
+| No demo users | Run `npm run db:seed` |
+
+### Useful npm scripts
+
+| Script | Purpose |
+| ------ | ------- |
+| `npm run dev` | Development server |
+| `npm run build` | Production build |
+| `npm run start` | Run production build |
+| `npm run db:generate` | Generate Prisma Client |
+| `npm run db:deploy` | **Apply migrations → create/update tables** |
+| `npm run db:migrate` | Create a new migration while developing (devs only) |
+| `npm run db:seed` | Load demo / reference data |
+| `npm run db:studio` | Browse PostgreSQL in the browser |
+| `npm run db:push` | Push schema without migration files (not for normal setup) |
+| `npm run typecheck` | TypeScript check |
+| `npm run lint` | ESLint |
+
+---
 
 ## Tech stack
 
-| Concern    | Choice                                  |
-| ---------- | --------------------------------------- |
-| Framework  | Next.js 16 (App Router) + TypeScript    |
-| UI         | React 19, Tailwind CSS v4, lucide icons |
-| Database   | PostgreSQL 16 via Prisma ORM            |
-| Validation | Zod                                     |
+| Concern | Choice |
+| ------- | ------ |
+| Framework | Next.js 16 (App Router) + TypeScript |
+| UI | React 19, Tailwind CSS v4, lucide icons |
+| Database | PostgreSQL 16 via Prisma ORM |
+| Validation | Zod |
 
 Frontend and backend live in the same Next.js project: React Server Components render the screens
 and Route Handlers under `src/app/api` expose the HTTP API.
@@ -71,32 +392,6 @@ Rules that keep the layers honest:
 | 8   | Dashboard & Reports   | Done   |
 | 9   | Audit Log             | Done   |
 
-## Getting started
-
-Requirements: Node.js 20+ and a running PostgreSQL server.
-
-```bash
-npm install
-cp .env.example .env      # set DATABASE_URL and a 32+ character AUTH_SECRET
-npm run db:migrate        # create the database schema
-npm run db:seed           # load the demonstration organization, sites and accounts
-npm run dev
-```
-
-The application runs at http://localhost:3000 and redirects to `/dashboard`.
-
-## Scripts
-
-| Script               | Purpose                                     |
-| -------------------- | ------------------------------------------- |
-| `npm run dev`        | Start the development server                |
-| `npm run build`      | Production build                            |
-| `npm run typecheck`  | TypeScript check without emitting files     |
-| `npm run lint`       | ESLint                                      |
-| `npm run db:migrate` | Create and apply a Prisma migration         |
-| `npm run db:seed`    | Load demonstration data                     |
-| `npm run db:studio`  | Browse the database in Prisma Studio        |
-
 ## Authentication and access control
 
 Sign-in issues a signed JWT stored in an `httpOnly` session cookie (8 hour lifetime). Passwords are
@@ -115,17 +410,6 @@ lives in `src/modules/auth/domain/permissions.ts`, so access rules can change in
 | Assessor / Compliance Officer | Register, assessments (conduct/submit), gaps, evidence review |
 | Approver                      | Approve assessments, confirm gap closure, review evidence    |
 | Control Owner                 | Read compliance data, upload evidence, update assigned work  |
-
-### Demonstration accounts
-
-Created by `npm run db:seed`. Local demonstration only.
-
-| Email                                 | Password        | Role          |
-| ------------------------------------- | --------------- | ------------- |
-| ahsan@nrlhd.health.nsw.gov.au         | Administrator1  | Administrator |
-| ali@nrlhd.health.nsw.gov.au           | Assessor12345   | Assessor      |
-| imran@nrlhd.health.nsw.gov.au         | Approver12345   | Approver      |
-| hasnain@nrlhd.health.nsw.gov.au       | Controlowner1   | Control Owner |
 
 ## Control catalogue
 
@@ -301,6 +585,3 @@ Validation failures return `422` with field level detail:
   }
 }
 ```
-#   I S M S 
- 
- 
