@@ -19,12 +19,15 @@ interface CreateAssessmentFormProps {
   frameworks: readonly { code: string; name: string }[];
   assessors: readonly Option[];
   defaultAssessorId: string;
+  /** Computed on the server so the initial title matches SSR HTML. */
+  defaultTitle: string;
 }
 
 export const CreateAssessmentForm = ({
   frameworks,
   assessors,
   defaultAssessorId,
+  defaultTitle,
 }: CreateAssessmentFormProps) => {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -32,7 +35,7 @@ export const CreateAssessmentForm = ({
   const [failure, setFailure] = useState<ApiFailure | null>(null);
 
   const [form, setForm] = useState({
-    title: `ISMS gap analysis ${new Date().getFullYear()}`,
+    title: defaultTitle,
     scope: "",
     frameworkCode: frameworks[0]?.code ?? "",
     leadAssessorId: defaultAssessorId,

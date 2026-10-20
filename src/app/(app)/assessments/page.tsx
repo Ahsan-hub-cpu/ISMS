@@ -68,6 +68,7 @@ export default async function AssessmentsPage({
               }))}
               assessors={assessors}
               defaultAssessorId={defaultAssessorId}
+              defaultTitle={`ISMS gap analysis ${new Date().getFullYear()}`}
             />
           ) : null
         }

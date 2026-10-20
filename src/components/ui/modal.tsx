@@ -1,7 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 import { cn } from "@/shared/utils/cn";
@@ -36,6 +36,13 @@ export const Modal = ({
   // effect does not re-run (and steal focus) on every keystroke re-render.
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
+  // Gate the portal until after mount so SSR and the first client render both
+  // return null — `typeof document` during render causes hydration mismatches.
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -72,7 +79,7 @@ export const Modal = ({
     };
   }, [open]);
 
-  if (!open || typeof document === "undefined") return null;
+  if (!mounted || !open) return null;
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 sm:items-center sm:p-6">
